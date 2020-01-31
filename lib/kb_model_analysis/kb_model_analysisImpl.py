@@ -3,7 +3,7 @@
 import logging
 import os
 
-from installed_clients.KBaseReportClient import KBaseReport
+from kb_model_analysis.Utils.HeatmapUtil import HeatmapUtil
 #END_HEADER
 
 
@@ -23,47 +23,57 @@ class kb_model_analysis:
     # the latter method is running.
     ######################################### noqa
     VERSION = "0.0.1"
-    GIT_URL = ""
-    GIT_COMMIT_HASH = ""
+    GIT_URL = "https://github.com/Tianhao-Gu/kb_model_analysis.git"
+    GIT_COMMIT_HASH = "6666999cbebb4191bf0eee2f2fd5a2d1955f57d9"
 
     #BEGIN_CLASS_HEADER
+    @staticmethod
+    def validate_params(params, expected, opt_param=set()):
+        """Validates that required parameters are present. Warns if unexpected parameters appear"""
+        expected = set(expected)
+        opt_param = set(opt_param)
+        pkeys = set(params)
+        if expected - pkeys:
+            raise ValueError("Required keys {} not in supplied parameters"
+                             .format(", ".join(expected - pkeys)))
+        defined_param = expected | opt_param
+        for param in params:
+            if param not in defined_param:
+                logging.warning("Unexpected parameter {} supplied".format(param))
     #END_CLASS_HEADER
 
     # config contains contents of config file in a hash or None if it couldn't
     # be found
     def __init__(self, config):
         #BEGIN_CONSTRUCTOR
-        self.callback_url = os.environ['SDK_CALLBACK_URL']
-        self.shared_folder = config['scratch']
+        self.config = config
+        self.config['SDK_CALLBACK_URL'] = os.environ['SDK_CALLBACK_URL']
+        self.config['KB_AUTH_TOKEN'] = os.environ['KB_AUTH_TOKEN']
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
+        self.heatmap_util = HeatmapUtil(config)
         #END_CONSTRUCTOR
         pass
 
 
-    def run_kb_model_analysis(self, ctx, params):
+    def model_heatmap_analysis(self, ctx, params):
         """
-        This example function accepts any number of parameters and returns results in a KBaseReport
-        :param params: instance of mapping from String to unspecified object
+        :param params: instance of type "HeatmapAnalysisParams" -> structure:
+           parameter "workspace_name" of String, parameter
+           "staging_file_path" of String
         :returns: instance of type "ReportResults" -> structure: parameter
            "report_name" of String, parameter "report_ref" of String
         """
         # ctx is the context object
         # return variables are: output
-        #BEGIN run_kb_model_analysis
-        report = KBaseReport(self.callback_url)
-        report_info = report.create({'report': {'objects_created':[],
-                                                'text_message': params['parameter_1']},
-                                                'workspace_name': params['workspace_name']})
-        output = {
-            'report_name': report_info['name'],
-            'report_ref': report_info['ref'],
-        }
-        #END run_kb_model_analysis
+        #BEGIN model_heatmap_analysis
+        self.validate_params(params, ['workspace_name', 'staging_file_path'])
+        output = self.heatmap_util.run_model_heatmap_analysis(params)
+        #END model_heatmap_analysis
 
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
-            raise ValueError('Method run_kb_model_analysis return value ' +
+            raise ValueError('Method model_heatmap_analysis return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]

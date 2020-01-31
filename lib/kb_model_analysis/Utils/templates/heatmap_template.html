@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style>
+body {font-family: "Lato", sans-serif;}
+
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 20%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+</style>
+<script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+<meta charset="UTF-8">
+<title>Heatmap</title>
+</head>
+<body>
+
+<p></p>
+
+<table>
+    <tr>
+        <td>Data Field</td>
+        <td><select id="data_field">
+                <option value="total_reactions">Total reactions</option>
+                <option value="total_genes">Total genes</option>
+                <option value="total_compounds">Total compounds</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td>Metadata Label</td>
+        <td><select id="metadata_label">
+                <option value="" selected="selected">Please Choose</option>
+                <option value="metadata_1">metadata_1</option>
+                <option value="metadata_2">metadata_2</option>
+                <option value="metadata_3">metadata_3</option>
+            </select>
+        </td>
+    </tr>
+
+</table>
+
+<div id='Heatmap'></div>
+<script>
+
+var data_json = $.getJSON({'url': "heatmap_data.json", 'async': false});
+data_json = JSON.parse(data_json.responseText);
+
+var meta_json = $.getJSON({'url': "heatmap_meta.json", 'async': false});
+meta_json = JSON.parse(meta_json.responseText);
+
+var metadata_label = document.getElementById("metadata_label");
+var label = metadata_label.value;
+var data_field = document.getElementById("data_field");
+var field = data_field.value;
+
+metadata_label.addEventListener('change', function (){
+    label = this.options[this.selectedIndex].value;
+    drawHeatmap(field, label);
+});
+
+data_field.addEventListener('change', function (){
+    field = this.options[this.selectedIndex].value;
+    drawHeatmap(field, label);
+});
+
+drawHeatmap(field, label);
+
+function drawHeatmap(field, label) {
+
+    var values = data_json[field].values;
+    var columns = data_json[field].compound_names;
+    var pathways = data_json['pathway_names'];
+
+    var columns_copied = JSON.parse(JSON.stringify(columns));
+    var columns_meta = JSON.parse(JSON.stringify(columns));
+    if (label != "") {
+        var meta = meta_json[label];
+        columns_meta.forEach(function(element,index){
+            // columns_copied[index] = columns[index] + '_' + meta[columns[index]].toString();
+            columns_meta[index] = columns[index] + '-' + meta[columns[index]].toString();
+        });
+    };
+
+    var data = [
+      {
+        z: values,
+        x: columns,
+        y: pathways,
+        type: 'heatmap',
+        hoverongaps: false
+      },
+      {
+        z: values,
+        x: columns_meta,
+        xaxis: 'x2',
+        type: 'heatmap'
+      }
+    ];
+
+    var layout = {
+        autosize: false,
+        xaxis: {
+            automargin: true,
+            tickangle: 45,
+            tickfont: {
+                color : 'black',
+            },
+        },
+        yaxis: {
+            autorange: true,
+            autotick: true,
+            automargin: true,
+        },
+        xaxis2: {
+            title: 'metadata',
+            automargin: true,
+            // tickangle: 45,
+            tickfont: {
+                color : 'black',
+            },
+            overlaying: 'x',
+            side: 'top',
+        },
+    };
+
+    Plotly.newPlot('Heatmap', data, layout);
+};
+
+</script>
+
+</body>
+</html>

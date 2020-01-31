@@ -9,7 +9,7 @@
         "input": null,
         "output": null
     },
-    "parameters": [ 
+    "parameters": [
         {
             "id": "parameter_1",
             "optional": true,
@@ -26,7 +26,7 @@
         "service-mapping": {
             "url": "",
             "name": "kb_model_analysis",
-            "method": "run_kb_model_analysis",
+            "method": "model_heatmap_analysis",
             "input_mapping": [
                 {
                     "narrative_system_variable": "workspace",

@@ -338,10 +338,10 @@ class Application(object):
         self.serverlog.set_log_level(6)
         self.rpc_service = JSONRPCServiceCustom()
         self.method_authentication = dict()
-        self.rpc_service.add(impl_kb_model_analysis.run_kb_model_analysis,
-                             name='kb_model_analysis.run_kb_model_analysis',
+        self.rpc_service.add(impl_kb_model_analysis.model_heatmap_analysis,
+                             name='kb_model_analysis.model_heatmap_analysis',
                              types=[dict])
-        self.method_authentication['kb_model_analysis.run_kb_model_analysis'] = 'required'  # noqa
+        self.method_authentication['kb_model_analysis.model_heatmap_analysis'] = 'required'  # noqa
         self.rpc_service.add(impl_kb_model_analysis.status,
                              name='kb_model_analysis.status',
                              types=[dict])

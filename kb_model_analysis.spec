@@ -8,9 +8,11 @@ module kb_model_analysis {
         string report_ref;
     } ReportResults;
 
-    /*
-        This example function accepts any number of parameters and returns results in a KBaseReport
-    */
-    funcdef run_kb_model_analysis(mapping<string,UnspecifiedObject> params) returns (ReportResults output) authentication required;
+    typedef structure {
+        string workspace_name;
+        string staging_file_path;
+    } HeatmapAnalysisParams;
+
+    funcdef model_heatmap_analysis(HeatmapAnalysisParams params) returns (ReportResults output) authentication required;
 
 };

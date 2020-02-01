@@ -37,9 +37,7 @@ td, th {
             <th>ATP per mol glucose (mol/mol glucose)</th>
             <th>Rich biomass yield (g/mmol carbon)</th>
             <th>Predicted auxotrophies</th>
-            <th class="metadata">metadata_1</th>
-            <th class="metadata">metadata_2</th>
-            <th class="metadata">metadata_3</th>
+            <!-- metadata_info -->
         </tr>
     </thead>
     <tfoot>
@@ -53,9 +51,7 @@ td, th {
             <th>ATP per mol glucose (mol/mol glucose)</th>
             <th>Rich biomass yield (g/mmol carbon)</th>
             <th>Predicted auxotrophies</th>
-            <th class="metadata">metadata_1</th>
-            <th class="metadata">metadata_2</th>
-            <th class="metadata">metadata_3</th>
+            <!-- metadata_info -->
         </tr>
     </tfoot>
 </table>
@@ -103,7 +99,7 @@ $(document).ready( function ()
         'paging': true,
         'processing': true,
         'ajax': 'overall_stats.json',
-        'deferLoading': 10,
+        'deferLoading': deferLoading_count,
         'deferRender': true,
         'order': [],
         'fixedColumns':

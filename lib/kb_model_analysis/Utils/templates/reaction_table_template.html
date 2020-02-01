@@ -33,7 +33,6 @@ td, th {
             <th>Defined media functional</th>
             <th>Defined media blocked</th>
             <th>Rich media essential</th>
-            <th>Rich media gapfilling</th>
             <th>Rich media functional</th>
             <th>Rich media blocked</th>
         </tr>
@@ -45,7 +44,6 @@ td, th {
             <th>Defined media functional</th>
             <th>Defined media blocked</th>
             <th>Rich media essential</th>
-            <th>Rich media gapfilling</th>
             <th>Rich media functional</th>
             <th>Rich media blocked</th>
         </tr>
@@ -95,16 +93,10 @@ $(document).ready( function ()
         'paging': true,
         'processing': true,
         'ajax': 'reaction_stats.json',
-        'deferLoading': 10,
+        'deferLoading': deferLoading_count,
         'deferRender': true,
         'order': [],
-        // 'fixedColumns':
-        // {
-        //     'leftColumns': 1
-        // }
     });
-
-    table.columns( '.metadata' ).visible( false );
 
     // Apply the search
     table.columns().every( function () {

@@ -4,22 +4,20 @@
         "tgu2"
     ],
     "contact": "",
-    "categories": ["active"],
+    "categories": ["active", "metabolic_modeling"],
     "widgets": {
-        "input": null,
-        "output": null
+        "input": "kbaseNarrativeMethodInput",
+        "output" : "no-display"
     },
     "parameters": [
         {
-            "id": "parameter_1",
-            "optional": true,
-            "advanced": false,
-            "allow_multiple": false,
-            "default_values": [ "" ],
-            "field_type": "text",
-            "text_options": {
-                "valid_ws_types": [ ]
-            }
+            "id" : "staging_file_path",
+            "optional" : false,
+            "advanced" : false,
+            "allow_multiple" : false,
+            "default_values" : [ "" ],
+            "field_type" : "dynamic_dropdown",
+            "text_options" : {}
         }
     ],
     "behavior": {
@@ -35,8 +33,8 @@
                     "narrative_system_variable": "workspace_id",
                     "target_property": "workspace_id"
                 },{
-                    "input_parameter": "parameter_1",
-                    "target_property": "parameter_1"
+                    "input_parameter": "staging_file_path",
+                    "target_property": "staging_file_path"
                 }
             ],
             "output_mapping": [

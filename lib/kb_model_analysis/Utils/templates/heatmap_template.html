@@ -30,9 +30,9 @@ td, th {
     <tr>
         <td>Data Field</td>
         <td><select id="data_field">
-                <option value="total_reactions">Total reactions</option>
-                <option value="total_genes">Total genes</option>
-                <option value="total_compounds">Total compounds</option>
+                <option value="gf">gf</option>
+                <option value="nonblocked">nonblocked</option>
+                <option value="rxn">rxn</option>
             </select>
         </td>
     </tr>
@@ -40,9 +40,7 @@ td, th {
         <td>Metadata Label</td>
         <td><select id="metadata_label">
                 <option value="" selected="selected">Please Choose</option>
-                <option value="metadata_1">metadata_1</option>
-                <option value="metadata_2">metadata_2</option>
-                <option value="metadata_3">metadata_3</option>
+                <!-- metadata_info -->
             </select>
         </td>
     </tr>
@@ -82,29 +80,29 @@ function drawHeatmap(field, label) {
     var pathways = data_json['pathway_names'];
 
     var columns_copied = JSON.parse(JSON.stringify(columns));
-    var columns_meta = JSON.parse(JSON.stringify(columns));
+    // var columns_meta = JSON.parse(JSON.stringify(columns));
     if (label != "") {
         var meta = meta_json[label];
-        columns_meta.forEach(function(element,index){
-            // columns_copied[index] = columns[index] + '_' + meta[columns[index]].toString();
-            columns_meta[index] = columns[index] + '-' + meta[columns[index]].toString();
+        columns_copied.forEach(function(element,index){
+            columns_copied[index] = columns[index] + '_' + meta[columns[index]].toString();
+            // columns_meta[index] = columns[index] + '-' + meta[columns[index]].toString();
         });
     };
 
     var data = [
       {
         z: values,
-        x: columns,
+        x: columns_copied,
         y: pathways,
         type: 'heatmap',
         hoverongaps: false
       },
-      {
-        z: values,
-        x: columns_meta,
-        xaxis: 'x2',
-        type: 'heatmap'
-      }
+      // {
+      //   z: values,
+      //   x: columns_meta,
+      //   xaxis: 'x2',
+      //   type: 'heatmap'
+      // }
     ];
 
     var layout = {
@@ -121,16 +119,15 @@ function drawHeatmap(field, label) {
             autotick: true,
             automargin: true,
         },
-        xaxis2: {
-            title: 'metadata',
-            automargin: true,
-            // tickangle: 45,
-            tickfont: {
-                color : 'black',
-            },
-            overlaying: 'x',
-            side: 'top',
-        },
+        // xaxis2: {
+        //     title: 'metadata',
+        //     automargin: true,
+        //     tickfont: {
+        //         color : 'black',
+        //     },
+        //     overlaying: 'x',
+        //     side: 'top',
+        // },
     };
 
     Plotly.newPlot('Heatmap', data, layout);

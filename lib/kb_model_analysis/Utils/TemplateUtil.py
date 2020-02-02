@@ -101,7 +101,9 @@ class TemplateUtil:
     def create_heatmap_analysis_template(self, params):
         workspace_id = params.get('workspace_id')
 
-        metadata_fields = params.get('metadata_fields', '')
+        metadata_fields = params.get('metadata_fields')
+        if metadata_fields is None:
+            metadata_fields = ''
         metadata_fields = list(set([i.strip() for i in metadata_fields.split(',')]))
         try:
             metadata_fields.remove('')

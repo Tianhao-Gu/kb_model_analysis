@@ -14,6 +14,7 @@ RUN pip install --upgrade pip \
 RUN pip install scipy==1.4.1 \
     && pip install pandas==1.0.0 \
     && pip install matplotlib==3.1.2 \
+    && pip install openpyxl==3.0.3 \
     && pip install xlrd==1.2.0 \
     && pip install mock==3.0.5
 

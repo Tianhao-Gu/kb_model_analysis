@@ -4,6 +4,7 @@ import logging
 import os
 
 from kb_model_analysis.Utils.HeatmapUtil import HeatmapUtil
+from kb_model_analysis.Utils.TemplateUtil import TemplateUtil
 #END_HEADER
 
 
@@ -24,7 +25,7 @@ class kb_model_analysis:
     ######################################### noqa
     VERSION = "0.0.1"
     GIT_URL = "https://github.com/Tianhao-Gu/kb_model_analysis.git"
-    GIT_COMMIT_HASH = "6666999cbebb4191bf0eee2f2fd5a2d1955f57d9"
+    GIT_COMMIT_HASH = "55bb57fcbe989d90b22c0ee192cd6224080fb43f"
 
     #BEGIN_CLASS_HEADER
     @staticmethod
@@ -52,6 +53,7 @@ class kb_model_analysis:
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
         self.heatmap_util = HeatmapUtil(config)
+        self.template_util = TemplateUtil(config)
         #END_CONSTRUCTOR
         pass
 
@@ -74,6 +76,35 @@ class kb_model_analysis:
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
             raise ValueError('Method model_heatmap_analysis return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
+
+    def create_heatmap_analysis_template(self, ctx, params):
+        """
+        :param params: instance of type "HeatmapAnalysisTemplateParams" ->
+           structure: parameter "workspace_id" of Long, parameter
+           "object_types" of list of String, parameter "workspace_scope" of
+           type "workspace_scope" -> structure: parameter "current_workspace"
+           of type "boolean" (A boolean - 0 for false, 1 for true.),
+           parameter "private_workspace" of type "boolean" (A boolean - 0 for
+           false, 1 for true.), parameter "all_workspace" of type "boolean"
+           (A boolean - 0 for false, 1 for true.), parameter
+           "metadata_fields" of String
+        :returns: instance of type "ReportResults" -> structure: parameter
+           "report_name" of String, parameter "report_ref" of String
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN create_heatmap_analysis_template
+        self.validate_params(params, ['workspace_id'],
+                             opt_param=['object_types', 'metadata_fields', 'workspace_scope'])
+        output = self.template_util.create_heatmap_analysis_template(params)
+        #END create_heatmap_analysis_template
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method create_heatmap_analysis_template return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]

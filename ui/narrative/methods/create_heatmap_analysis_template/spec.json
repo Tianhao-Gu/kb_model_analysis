@@ -73,7 +73,7 @@
             "method": "create_heatmap_analysis_template",
             "input_mapping": [
                 {
-                    "narrative_system_variable": "workspace",
+                    "narrative_system_variable": "workspace_id",
                     "target_property": "workspace_id"
                 },{
                     "input_parameter": "metadata_fields",

@@ -24,29 +24,13 @@ suggestions:
 # Configure the display and description of parameters
 #
 parameters :
-    current_workspace :
+    workspace_scope:
         ui-name : |
-            Current Narrative
+            Fetch Model Objects From
         short-hint : |
-            Current Narrative
+            Fetch model objects from current, private or all accessible worksapces
         long-hint  : |
-            Current Narrative
-
-    private_workspace :
-        ui-name : |
-            All Personal Narratives
-        short-hint : |
-            All Personal Narratives
-        long-hint  : |
-            All Personal Narratives
-
-    all_workspace :
-        ui-name : |
-            All Accessible Narratives (Excluding Public Narratives)
-        short-hint : |
-            All Accessible Narratives (Excluding Public Narratives)
-        long-hint  : |
-            All Accessible Narratives (Excluding Public Narratives)
+            Fetch model objects from current, private or all accessible worksapces
 
     metadata_fields :
         ui-name : |
@@ -56,14 +40,6 @@ parameters :
         long-hint  : |
             metadata associated with each model (separated by comma)
 
-parameter-groups :
-    workspace_scope:
-        ui-name : |
-            Fetch Model Objects In
-        short-hint : |
-            Fetch Model Objects In
-        long-hint  : |
-            Fetch Model Objects In
 
 description : |
     <p>Create a template file for Model Comparison app</p>

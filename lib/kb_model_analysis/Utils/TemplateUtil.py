@@ -113,10 +113,10 @@ class TemplateUtil:
 
         user_id = self.auth_client.get_user(self.token)
 
-        workspace_scope = params.get('workspace_scope', {})
+        workspace_scope = params.get('workspace_scope', 'current_workspace')
 
-        all_workspace = workspace_scope.get('all_workspace', 0)
-        private_workspace = workspace_scope.get('private_workspace', 0)
+        all_workspace = (workspace_scope == 'all_workspace')
+        private_workspace = (workspace_scope == 'private_workspace')
 
         workspace_ids = self._get_workspace_ids(all_workspace, private_workspace, user_id)
 

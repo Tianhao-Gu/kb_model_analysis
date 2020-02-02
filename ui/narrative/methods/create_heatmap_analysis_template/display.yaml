@@ -34,11 +34,11 @@ parameters :
 
     private_workspace :
         ui-name : |
-            All My Personal Narratives
+            All Personal Narratives
         short-hint : |
-            All My Personal Narratives
+            All Personal Narratives
         long-hint  : |
-            All My Personal Narratives
+            All Personal Narratives
 
     all_workspace :
         ui-name : |

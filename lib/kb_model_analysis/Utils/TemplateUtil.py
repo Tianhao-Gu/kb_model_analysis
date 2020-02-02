@@ -103,7 +103,10 @@ class TemplateUtil:
 
         metadata_fields = params.get('metadata_fields', '')
         metadata_fields = list(set([i.strip() for i in metadata_fields.split(',')]))
-        metadata_fields.remove('')
+        try:
+            metadata_fields.remove('')
+        except Exception:
+            pass
         object_types = params.get('object_type', ['KBaseFBA.FBAModel'])
 
         user_id = self.auth_client.get_user(self.token)

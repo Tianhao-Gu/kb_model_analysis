@@ -25,7 +25,7 @@ class kb_model_analysis:
     ######################################### noqa
     VERSION = "0.0.1"
     GIT_URL = "https://github.com/Tianhao-Gu/kb_model_analysis.git"
-    GIT_COMMIT_HASH = "755733400ae81943052ee6e6be3a9e1c91414257"
+    GIT_COMMIT_HASH = "0959bf449f9943340178b5f111254f70388e3b21"
 
     #BEGIN_CLASS_HEADER
     @staticmethod
@@ -82,10 +82,13 @@ class kb_model_analysis:
 
     def create_heatmap_analysis_template(self, ctx, params):
         """
-        :param params: instance of type "HeatmapAnalysisTemplateParams" ->
-           structure: parameter "workspace_id" of Long, parameter
-           "object_types" of list of String, parameter "workspace_scope" of
-           String, parameter "metadata_fields" of String
+        :param params: instance of type "HeatmapAnalysisTemplateParams"
+           (workspace_scope: one of ['all_workspace', 'private_workspace',
+           'current_workspace'], default 'current_workspace' object_types:
+           default ['KBaseFBA.FBAModel']) -> structure: parameter
+           "workspace_id" of Long, parameter "object_types" of list of
+           String, parameter "workspace_scope" of String, parameter
+           "metadata_fields" of String
         :returns: instance of type "ReportResults" -> structure: parameter
            "report_name" of String, parameter "report_ref" of String
         """

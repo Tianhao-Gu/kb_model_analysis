@@ -23,6 +23,9 @@ module kb_model_analysis {
 
     funcdef model_heatmap_analysis(HeatmapAnalysisParams params) returns (ReportResults output) authentication required;
 
+    /* workspace_scope: one of ['all_workspace', 'private_workspace', 'current_workspace'], default 'current_workspace'
+       object_types: default ['KBaseFBA.FBAModel']
+    */
     typedef structure {
         int workspace_id;
         list<string> object_types;

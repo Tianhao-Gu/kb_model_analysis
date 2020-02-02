@@ -3,9 +3,6 @@ import os
 import uuid
 import logging
 import pandas as pd
-from xlrd.biffh import XLRDError
-import json
-import shutil
 
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.KBaseReportClient import KBaseReport
@@ -44,8 +41,20 @@ class TemplateUtil:
                        'label': 'model comparison template file',
                        'description': 'use this file for Model Comparison app'}]
 
-        report_params = {'message': 'Found {} objects in {} narratives'.format(
-                                                            len(obj_df.index), workspace_num),
+        obj_size = len(obj_df.index)
+        if obj_size == 1:
+            obj_str = 'object'
+        else:
+            obj_str = 'objects'
+
+        if workspace_num == 1:
+            workspace_str = 'narrative'
+        else:
+            workspace_str = 'narratives'
+
+        report_params = {'message': 'Found {} {} from {} {}'.format(
+                                                            obj_size, obj_str,
+                                                            workspace_num, workspace_str),
                          'workspace_id': workspace_id,
                          'file_links': file_links,
                          'report_object_name': 'model_comparison_template_' + str(uuid.uuid4())}

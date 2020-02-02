@@ -11,38 +11,30 @@
     },
     "parameters": [
         {
-            "id": "current_workspace",
-            "optional":false,
-            "advanced":false,
-            "allow_multiple":false,
-            "default_values":[1],
-            "field_type" : "checkbox",
-            "checkbox_options":{
-                "checked_value": 1,
-                "unchecked_value": 0
-            }
-        },{
-            "id": "private_workspace",
-            "optional":false,
-            "advanced":false,
-            "allow_multiple":false,
-            "default_values":[0],
-            "field_type" : "checkbox",
-            "checkbox_options":{
-                "checked_value": 1,
-                "unchecked_value": 0
-            }
-        },{
-            "id": "all_workspace",
-            "optional":false,
-            "advanced":false,
-            "allow_multiple":false,
-            "default_values":[0],
-            "field_type" : "checkbox",
-            "checkbox_options":{
-                "checked_value": 1,
-                "unchecked_value": 0
-            }
+          "id" : "workspace_scope",
+          "optional" : false,
+          "advanced" : false,
+          "allow_multiple" : false,
+          "default_values" : ["current_workspace"],
+          "field_type" : "dropdown",
+          "dropdown_options":
+          {
+            "options":
+            [
+              {
+                  "display": "Current Narrative",
+                  "value": "current_workspace"
+              },
+              {
+                  "display": "All Personal Narratives",
+                  "value": "private_workspace"
+              },
+              {
+                  "display": "All Accessible Narratives (Excluding Public Narratives)",
+                  "value": "all_workspace"
+              }
+            ]
+          }
         },{
             "id" : "metadata_fields",
             "optional" : true,
@@ -50,20 +42,6 @@
             "allow_multiple" : false,
             "default_values" : [],
             "field_type" : "text"
-        }
-    ],
-    "parameter-groups": [
-        {
-          "id": "workspace_scope",
-          "parameters": [
-            "current_workspace",
-            "private_workspace",
-            "all_workspace"
-          ],
-          "optional": false,
-          "allow_multiple": false,
-          "with_border": false,
-          "advanced" : false
         }
     ],
     "behavior": {

@@ -25,7 +25,7 @@ class kb_model_analysis:
     ######################################### noqa
     VERSION = "0.0.1"
     GIT_URL = "https://github.com/Tianhao-Gu/kb_model_analysis.git"
-    GIT_COMMIT_HASH = "55bb57fcbe989d90b22c0ee192cd6224080fb43f"
+    GIT_COMMIT_HASH = "755733400ae81943052ee6e6be3a9e1c91414257"
 
     #BEGIN_CLASS_HEADER
     @staticmethod
@@ -85,12 +85,7 @@ class kb_model_analysis:
         :param params: instance of type "HeatmapAnalysisTemplateParams" ->
            structure: parameter "workspace_id" of Long, parameter
            "object_types" of list of String, parameter "workspace_scope" of
-           type "workspace_scope" -> structure: parameter "current_workspace"
-           of type "boolean" (A boolean - 0 for false, 1 for true.),
-           parameter "private_workspace" of type "boolean" (A boolean - 0 for
-           false, 1 for true.), parameter "all_workspace" of type "boolean"
-           (A boolean - 0 for false, 1 for true.), parameter
-           "metadata_fields" of String
+           String, parameter "metadata_fields" of String
         :returns: instance of type "ReportResults" -> structure: parameter
            "report_name" of String, parameter "report_ref" of String
         """

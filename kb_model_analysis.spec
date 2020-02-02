@@ -24,15 +24,9 @@ module kb_model_analysis {
     funcdef model_heatmap_analysis(HeatmapAnalysisParams params) returns (ReportResults output) authentication required;
 
     typedef structure {
-        boolean current_workspace;
-        boolean private_workspace;
-        boolean all_workspace;
-    } workspace_scope;
-
-    typedef structure {
         int workspace_id;
         list<string> object_types;
-        workspace_scope workspace_scope;
+        string workspace_scope;
         string metadata_fields;
     } HeatmapAnalysisTemplateParams;
 

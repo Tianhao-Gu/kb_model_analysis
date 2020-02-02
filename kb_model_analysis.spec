@@ -3,6 +3,14 @@ A KBase module: kb_model_analysis
 */
 
 module kb_model_analysis {
+    /* A boolean - 0 for false, 1 for true.
+    */
+    typedef int boolean;
+
+    /* An X/Y/Z style reference
+    */
+    typedef string obj_ref;
+
     typedef structure {
         string report_name;
         string report_ref;
@@ -14,5 +22,20 @@ module kb_model_analysis {
     } HeatmapAnalysisParams;
 
     funcdef model_heatmap_analysis(HeatmapAnalysisParams params) returns (ReportResults output) authentication required;
+
+    typedef structure {
+        boolean current_workspace;
+        boolean private_workspace;
+        boolean all_workspace;
+    } workspace_scope;
+
+    typedef structure {
+        int workspace_id;
+        list<string> object_types;
+        workspace_scope workspace_scope;
+        string metadata_fields;
+    } HeatmapAnalysisTemplateParams;
+
+    funcdef create_heatmap_analysis_template(HeatmapAnalysisTemplateParams params) returns (ReportResults output) authentication required;
 
 };

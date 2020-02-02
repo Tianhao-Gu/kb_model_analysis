@@ -1,0 +1,98 @@
+{
+    "ver": "0.0.1",
+    "authors": [
+        "tgu2"
+    ],
+    "contact": "",
+    "categories": ["active", "metabolic_modeling"],
+    "widgets": {
+        "input": "kbaseNarrativeMethodInput",
+        "output" : "no-display"
+    },
+    "parameters": [
+        {
+            "id": "current_workspace",
+            "optional":false,
+            "advanced":false,
+            "allow_multiple":false,
+            "default_values":[1],
+            "field_type" : "checkbox",
+            "checkbox_options":{
+                "checked_value": 1,
+                "unchecked_value": 0
+            }
+        },{
+            "id": "private_workspace",
+            "optional":false,
+            "advanced":false,
+            "allow_multiple":false,
+            "default_values":[0],
+            "field_type" : "checkbox",
+            "checkbox_options":{
+                "checked_value": 1,
+                "unchecked_value": 0
+            }
+        },{
+            "id": "all_workspace",
+            "optional":false,
+            "advanced":false,
+            "allow_multiple":false,
+            "default_values":[0],
+            "field_type" : "checkbox",
+            "checkbox_options":{
+                "checked_value": 1,
+                "unchecked_value": 0
+            }
+        },{
+            "id" : "metadata_fields",
+            "optional" : true,
+            "advanced" : false,
+            "allow_multiple" : false,
+            "default_values" : [],
+            "field_type" : "text"
+        }
+    ],
+    "parameter-groups": [
+        {
+          "id": "workspace_scope",
+          "parameters": [
+            "current_workspace",
+            "private_workspace",
+            "all_workspace"
+          ],
+          "optional": false,
+          "allow_multiple": false,
+          "with_border": false,
+          "advanced" : false
+        }
+    ],
+    "behavior": {
+        "service-mapping": {
+            "url": "",
+            "name": "kb_model_analysis",
+            "method": "create_heatmap_analysis_template",
+            "input_mapping": [
+                {
+                    "narrative_system_variable": "workspace",
+                    "target_property": "workspace_id"
+                },{
+                    "input_parameter": "metadata_fields",
+                    "target_property": "metadata_fields"
+                },{
+                    "input_parameter": "workspace_scope",
+                    "target_property": "workspace_scope"
+                }
+            ],
+            "output_mapping": [
+                {
+                    "service_method_output_path": [0,"report_name"],
+                    "target_property": "report_name"
+                },{
+                    "service_method_output_path": [0,"report_ref"],
+                    "target_property": "report_ref"
+                }
+            ]
+        }
+    },
+    "job_id_output_field": "docker"
+}

@@ -360,6 +360,10 @@ class HeatmapUtil:
                         {'staging_file_subdir_path': staging_file_path}).get('copy_file_path')
 
         model_df = self._read_csv_file(model_file_path)
+        try:
+            model_df.drop(columns=['model_name'], inplace=True)
+        except KeyError:
+            logging.info('model_name does not exist in excel')
 
         (overall_stats, reaction_stats) = self._build_model_comparison_data(model_df)
         heatmap_data = self._build_heatmap_data(model_df)

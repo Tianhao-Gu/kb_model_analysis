@@ -147,12 +147,12 @@ class kb_model_analysisTest(unittest.TestCase):
         self.assertIn('report_ref', returnVal)
         self.assertIn('report_name', returnVal)
 
-    # def test_create_heatmap_analysis_template(self):
-    #     params = {'workspace_id': self.wsId,
-    #               'object_types': ['KBaseFile.SingleEndLibrary', 'KBaseFile.PairedEndLibrary'],
-    #               'workspace_scope': 'all_workspace',
-    #               }
-    #     returnVal = self.serviceImpl.create_heatmap_analysis_template(self.ctx, params)[0]
+    def test_create_heatmap_analysis_template(self):
+        params = {'workspace_id': self.wsId,
+                  'object_types': ['KBaseFile.SingleEndLibrary', 'KBaseFile.PairedEndLibrary'],
+                  'workspace_scope': 'all_workspace',
+                  }
+        returnVal = self.serviceImpl.create_heatmap_analysis_template(self.ctx, params)[0]
 
-    #     self.assertIn('report_ref', returnVal)
-    #     self.assertIn('report_name', returnVal)
+        self.assertIn('report_ref', returnVal)
+        self.assertIn('report_name', returnVal)

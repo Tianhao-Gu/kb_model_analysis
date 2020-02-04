@@ -30,9 +30,7 @@ td, th {
     <tr>
         <td>Data Field</td>
         <td><select id="data_field">
-                <option value="gf">gf</option>
-                <option value="nonblocked">nonblocked</option>
-                <option value="rxn">rxn</option>
+                <!-- data_info -->
             </select>
         </td>
     </tr>
@@ -41,6 +39,13 @@ td, th {
         <td><select id="metadata_label">
                 <option value="" selected="selected">Please Choose</option>
                 <!-- metadata_info -->
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td>Pathway Label</td>
+        <td><select id="pathway_label">
+                <!-- pathway_info -->
             </select>
         </td>
     </tr>
@@ -57,35 +62,40 @@ var meta_json = $.getJSON({'url': "heatmap_meta.json", 'async': false});
 meta_json = JSON.parse(meta_json.responseText);
 
 var metadata_label = document.getElementById("metadata_label");
-var label = metadata_label.value;
+var metadata_label_value = metadata_label.value;
 var data_field = document.getElementById("data_field");
-var field = data_field.value;
+var data_field_value = data_field.value;
+var pathway_label = document.getElementById("pathway_label");
+var pathway_label_value = pathway_label.value;
 
 metadata_label.addEventListener('change', function (){
-    label = this.options[this.selectedIndex].value;
-    drawHeatmap(field, label);
+    metadata_label_value = this.options[this.selectedIndex].value;
+    drawHeatmap(data_field_value, metadata_label_value, pathway_label_value);
 });
 
 data_field.addEventListener('change', function (){
-    field = this.options[this.selectedIndex].value;
-    drawHeatmap(field, label);
+    data_field_value = this.options[this.selectedIndex].value;
+    drawHeatmap(data_field_value, metadata_label_value, pathway_label_value);
 });
 
-drawHeatmap(field, label);
+pathway_label.addEventListener('change', function (){
+    pathway_label_value = this.options[this.selectedIndex].value;
+    drawHeatmap(data_field_value, metadata_label_value, pathway_label_value);
+});
 
-function drawHeatmap(field, label) {
+drawHeatmap(data_field_value, metadata_label_value, pathway_label_value);
 
-    var values = data_json[field].values;
-    var columns = data_json[field].compound_names;
-    var pathways = data_json['pathway_names'];
+function drawHeatmap(data_field_value, metadata_label_value, pathway_label_value) {
+
+    var values = data_json[data_field_value].values;
+    var columns = data_json[data_field_value].compound_names;
+    var pathways = data_json['pathways'][pathway_label_value];
 
     var columns_copied = JSON.parse(JSON.stringify(columns));
-    // var columns_meta = JSON.parse(JSON.stringify(columns));
-    if (label != "") {
-        var meta = meta_json[label];
+    if (metadata_label_value != "") {
+        var meta = meta_json[metadata_label_value];
         columns_copied.forEach(function(element,index){
-            columns_copied[index] = columns[index] + '_' + meta[columns[index]].toString();
-            // columns_meta[index] = columns[index] + '-' + meta[columns[index]].toString();
+            columns_copied[index] = meta[columns[index]].toString();
         });
     };
 
@@ -97,12 +107,6 @@ function drawHeatmap(field, label) {
         type: 'heatmap',
         hoverongaps: false
       },
-      // {
-      //   z: values,
-      //   x: columns_meta,
-      //   xaxis: 'x2',
-      //   type: 'heatmap'
-      // }
     ];
 
     var layout = {
@@ -115,23 +119,17 @@ function drawHeatmap(field, label) {
             },
         },
         yaxis: {
-            autorange: true,
-            autotick: true,
             automargin: true,
+            // tickangle: 45,
+            tickfont: {
+                color : 'black',
+            },
         },
-        // xaxis2: {
-        //     title: 'metadata',
-        //     automargin: true,
-        //     tickfont: {
-        //         color : 'black',
-        //     },
-        //     overlaying: 'x',
-        //     side: 'top',
-        // },
     };
 
     Plotly.newPlot('Heatmap', data, layout);
 };
+
 
 </script>
 

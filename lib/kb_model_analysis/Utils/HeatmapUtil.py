@@ -73,28 +73,25 @@ class HeatmapUtil:
         modelreactions = model_data.get('modelreactions', [])
         modelcompounds = model_data.get('modelcompounds', [])
 
-        genecount = 0
-        for modelreaction in modelreactions:
-            genecount += modelreaction.get('gene_count', 0)
+        fbas = attributes.get('fbas', {})
+        auxo_biomass = fbas.get('defined', {}).get('biomass', 0)
 
         # build overall_stats
         overall_stats.append(model_name)  # model_name
         overall_stats.append(len(modelreactions))  # Total reactions
-        overall_stats.append(genecount)  # Total genes
+        overall_stats.append(attributes.get('gene_count', 0))  # Total genes
         overall_stats.append(len(modelcompounds))  # Total compounds
         overall_stats.append(attributes.get('core_gapfilling', 0))  # Core gapfilling
-        overall_stats.append(attributes.get('baseline_gapfilling', 0))  # Rich media gapfilling
+        overall_stats.append(attributes.get('base_gapfilling', 0))  # Rich media gapfilling
         overall_stats.append(attributes.get('base_atp', 0))  # ATP per mol glucose
-        overall_stats.append(attributes.get('auxo_biomass', 0))  # Rich biomass yield
+        overall_stats.append(auxo_biomass)  # Rich biomass yield
 
-        attr_keys = attributes.keys()
-        auxotrophy_keys = [s for s in attr_keys if ('auxotrophy_' in s)]
-        auxotrophy_keys.remove('auxotrophy_gapfilling')
+        auxotrophy = attributes.get('auxotrophy', {})
         auxotrophy_count = 0
-        for auxotrophy_key in auxotrophy_keys:
-            auxotrophy = attributes.get(auxotrophy_key)
-            if auxotrophy.endswith('1'):
+        for auxo_id, auxo_data in auxotrophy.items():
+            if auxo_data.get('is_auxotrophic', 0):
                 auxotrophy_count += 1
+
         overall_stats.append(auxotrophy_count)  # Predicted auxotrophies
 
         meta_data = model_df.loc[model_ref, :].tolist()
@@ -102,23 +99,26 @@ class HeatmapUtil:
 
         # build reaction_stats
         reaction_stats.append(model_name)  # model_name
-        auxo_class_Negative = attributes.get('auxo_class_Negative', 0)
-        auxo_class_Positive = attributes.get('auxo_class_Positive', 0)
+
+        fbas_auxo = fbas.get('defined', {})
+        auxo_class_Negative = fbas_auxo.get('Negative', 0)
+        auxo_class_Positive = fbas_auxo.get('Positive', 0)
 
         reaction_stats.append(auxo_class_Negative + auxo_class_Positive)  # Defined media essential
-        reaction_stats.append(attributes.get('auxo_class_Negative variable', 0) +
-                              attributes.get('auxo_class_Positive variable', 0) +
-                              attributes.get('auxo_class_Variable', 0))  # Defined media functional
-        reaction_stats.append(attributes.get('auxo_class_Blocked', 0))  # Defined media blocked
+        reaction_stats.append(fbas_auxo.get('NegativeVariable', 0) +
+                              fbas_auxo.get('PositiveVariable', 0) +
+                              fbas_auxo.get('Variable', 0))  # Defined media functional
+        reaction_stats.append(fbas_auxo.get('Blocked', 0))  # Defined media blocked
 
-        complete_class_Negative = attributes.get('complete_class_Negative', 0)
-        complete_class_Positive = attributes.get('complete_class_Positive', 0)
+        fbas_complete = fbas.get('rich', {})
+        complete_class_Negative = fbas_complete.get('Negative', 0)
+        complete_class_Positive = fbas_complete.get('Positive', 0)
 
         reaction_stats.append(complete_class_Negative + complete_class_Positive)  # Rich media essential
-        reaction_stats.append(attributes.get('complete_class_Negative variable', 0) +
-                              attributes.get('complete_class_Positive variable', 0) +
-                              attributes.get('complete_class_Variable', 0))  # Rich media functional
-        reaction_stats.append(attributes.get('complete_class_Blocked', 0))  # Rich media blocked
+        reaction_stats.append(fbas_complete.get('NegativeVariable', 0) +
+                              fbas_complete.get('PositiveVariable', 0) +
+                              fbas_complete.get('Variable', 0))  # Rich media functional
+        reaction_stats.append(fbas_complete.get('Blocked', 0))  # Rich media blocked
 
         return overall_stats, reaction_stats
 
@@ -148,51 +148,51 @@ class HeatmapUtil:
         model_data = model_obj['data']
         model_info = model_obj['info']
         attributes = model_data.get('attributes', {})
-        attr_keys = attributes.keys()
-        pathway_keys = [s for s in attr_keys if ('pathways_' in s)]
+        pathways = attributes.get('pathways', {})
 
+        pathway_ids = list()
         pathway_names = list()
+        pathway_class1_names = list()
+        pathway_class2_names = list()
         fetched_pathway_value = list()
-        for pathway_key in pathway_keys:
-            pathway_data = attributes.get(pathway_key)
-            pathway_names.append(pathway_key.split('pathways_')[-1])   # TODO: fetch pathway_name from pathway_key
-            if field_type == 'gf':
-                fetched_pathway_value.append(pathway_data.get('gf', 0))
-            elif field_type == 'nonblocked':
-                fetched_pathway_value.append(pathway_data.get('nonblocked', 0))
-            elif field_type == 'rxn':
-                fetched_pathway_value.append(pathway_data.get('rxn', 0))
-            else:
-                raise ValueError("Unexpected field type")
-        model_name = model_info[1]
+        pathway_count = 0
+        for pathway_id, pathway_data in pathways.items():
+            pathway_ids.append(pathway_id)
+            pathway_name = pathway_data.get('name') + ' [{}]'.format(pathway_count)
+            pathway_class1 = pathway_data.get('class_1') + ' [{}]'.format(pathway_count)
+            pathway_class2 = pathway_data.get('class_2') + ' [{}]'.format(pathway_count)
+            pathway_names.append(pathway_name)
+            pathway_class1_names.append(pathway_class1)
+            pathway_class2_names.append(pathway_class2)
+            fetched_pathway_value.append(pathway_data.get(field_type, 0))
+            pathway_count += 1
+        model_name = model_info[1] + ' [0]'
         pathway_df = pd.DataFrame({model_name: fetched_pathway_value}, index=pathway_names)
+
+        pathway_info = {'name': pathway_names,
+                        'class_1': pathway_class1_names,
+                        'class_2': pathway_class2_names}
 
         for model_ref in model_refs[1:]:
             model_obj = self.dfu.get_objects({'object_refs': [model_ref]})['data'][0]
             model_data = model_obj['data']
             model_info = model_obj['info']
             attributes = model_data.get('attributes', {})
-
-            fetched_pathway_value = list()
-            for pathway_key in pathway_keys:
-                pathway_data = attributes.get(pathway_key, {})
-
-                if field_type == 'gf':
-                    fetched_pathway_value.append(pathway_data.get('gf', 0))
-                elif field_type == 'nonblocked':
-                    fetched_pathway_value.append(pathway_data.get('nonblocked', 0))
-                elif field_type == 'rxn':
-                    fetched_pathway_value.append(pathway_data.get('rxn', 0))
-                else:
-                    raise ValueError("Unexpected field type")
+            pathways = attributes.get('pathways', {})
             # TODO: should check/add newly found pathways found in models
-            pathway_df[model_info[1]] = fetched_pathway_value
+            fetched_pathway_value = list()
+            for pathway_id in pathway_ids:
+                pathway_data = pathways.get(pathway_id, {})
+                fetched_pathway_value.append(pathway_data.get(field_type, 0))
+
+            model_name = model_info[1] + ' [{}]'.format(model_refs.index(model_ref))
+            pathway_df[model_name] = fetched_pathway_value
 
         ordered_label = self._compute_cluster_label_order(pathway_df.T.values.tolist(),
                                                           pathway_df.T.index.tolist())
         pathway_df = pathway_df.reindex(columns=ordered_label)
 
-        return pathway_df
+        return pathway_df, pathway_info
 
     def _build_heatmap_meta(self, model_df):
 
@@ -203,15 +203,19 @@ class HeatmapUtil:
         meta_data_names = model_df.columns.tolist()
 
         model_names = list()
-        for model_ref in model_refs:
+        for i, model_ref in enumerate(model_refs):
             model_obj = self.dfu.get_objects({'object_refs': [model_ref]})['data'][0]
             model_name = model_obj['info'][1]
-            model_names.append(model_name)
+            model_names.append(model_name + ' [{}]'.format(i))
 
         heatmap_meta = dict()
         for meta_data_name in meta_data_names:
             model_meta_mapping = dict()
-            model_meta_data = model_df.loc[:, meta_data_name].tolist()
+            model_meta = model_df.loc[:, meta_data_name].tolist()
+
+            model_meta_data = list()
+            for i, meta_data in enumerate(model_meta):
+                model_meta_data.append(meta_data + '[{}]'.format(i))
 
             for i, model_name in enumerate(model_names):
                 model_meta_mapping.update({model_name: model_meta_data[i]})
@@ -228,23 +232,16 @@ class HeatmapUtil:
 
         heatmap_data = dict()
 
-        # build gf
-        gf_df = self._get_pathway_heatmap_data('gf', model_refs)
-        heatmap_data.update({'gf': {'values': gf_df.values.tolist(),
-                                    'compound_names': gf_df.columns.tolist()}})
+        pathway_types = ['gapfilled_rxn', 'functional_rxn', 'nonfunctional_rxn', 'pathway_size',
+                         'gene_count', 'average_genes_per_reaction', 'stddev_genes_per_reaction',
+                         'average_coverage_per_reaction', 'stddev_coverage_per_reaction']
 
-        # build nonblocked
-        nonblocked_df = self._get_pathway_heatmap_data('nonblocked', model_refs)
-        heatmap_data.update({'nonblocked': {'values': nonblocked_df.values.tolist(),
-                                            'compound_names': nonblocked_df.columns.tolist()}})
+        for pathway_type in pathway_types:
+            pathway_df, pathway_info = self._get_pathway_heatmap_data(pathway_type, model_refs)
+            heatmap_data.update({pathway_type: {'values': pathway_df.values.tolist(),
+                                                'compound_names': pathway_df.columns.tolist()}})
 
-        # build rxn
-        rxn_df = self._get_pathway_heatmap_data('rxn', model_refs)
-        heatmap_data.update({'rxn': {'values': rxn_df.values.tolist(),
-                                     'compound_names': rxn_df.columns.tolist()}})
-
-        pathway_names = gf_df.index.tolist()
-        heatmap_data.update({'pathway_names': pathway_names})
+        heatmap_data.update({'pathways': pathway_info})
 
         return heatmap_data
 
@@ -323,6 +320,16 @@ class HeatmapUtil:
         for meta_name in heatmap_meta.keys():
             metadata_info += """\n<option value="{}">{}</option>\n""".format(meta_name, meta_name)
 
+        data_info = ""
+        for data_name in heatmap_data.keys():
+            if data_name == 'pathways':
+                continue
+            data_info += """\n<option value="{}">{}</option>\n""".format(data_name, data_name)
+
+        pathway_info = ""
+        for pathway_name in heatmap_data.get('pathways').keys():
+            pathway_info += """\n<option value="{}">{}</option>\n""".format(pathway_name, pathway_name)
+
         heatmap_html = os.path.join(output_directory, 'heatmap.html')
         with open(heatmap_html, 'w') as heatmap_html:
             with open(os.path.join(os.path.dirname(__file__),
@@ -331,6 +338,10 @@ class HeatmapUtil:
                 heatmap_template = heatmap_template_file.read()
                 heatmap_template = heatmap_template.replace('<!-- metadata_info -->',
                                                             metadata_info)
+                heatmap_template = heatmap_template.replace('<!-- data_info -->',
+                                                            data_info)
+                heatmap_template = heatmap_template.replace('<!-- pathway_info -->',
+                                                            pathway_info)
                 heatmap_html.write(heatmap_template)
 
         report_shock_id = self.dfu.file_to_shock({'file_path': output_directory,
@@ -360,10 +371,16 @@ class HeatmapUtil:
                         {'staging_file_subdir_path': staging_file_path}).get('copy_file_path')
 
         model_df = self._read_csv_file(model_file_path)
+
         try:
             model_df.drop(columns=['model_name'], inplace=True)
         except KeyError:
             logging.info('model_name does not exist in excel')
+
+        try:
+            model_df.drop(columns=['model_index'], inplace=True)
+        except KeyError:
+            logging.info('model_index does not exist in excel')
 
         (overall_stats, reaction_stats) = self._build_model_comparison_data(model_df)
         heatmap_data = self._build_heatmap_data(model_df)

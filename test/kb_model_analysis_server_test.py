@@ -67,32 +67,62 @@ class kb_model_analysisTest(unittest.TestCase):
 
         model_ref = params['object_refs'][0]
 
+        random.seed(None)
+
+        fake_model_data = {}
+
+        fake_model_data['modelcompounds'] = ['modelcompounds'] * random.randint(0, 32)
+        fake_model_data['modelreactions'] = ['modelreactions'] * random.randint(0, 32)
+
+        attributes = {}
+
+        attributes['base_gapfilling'] = random.randint(0, 32)
+        attributes['core_gapfilling'] = random.randint(0, 32)
+        attributes['gene_count'] = random.randint(0, 32)
+        attributes['base_atp'] = random.randint(0, 32)
+
+        fbas = dict()
+        for fba_name in ['defined', 'rich']:
+            fbas[fba_name] = {'biomass': random.random(),
+                              'Blocked': random.randint(0, 32),
+                              'Negative': random.randint(0, 32),
+                              'Positive': random.randint(0, 32),
+                              'PositiveVariable': random.randint(0, 32),
+                              'NegativeVariable': random.randint(0, 32),
+                              'Variable': random.randint(0, 32)}
+
+        attributes['fbas'] = fbas
+
+        auxotrophy_size = random.randint(0, 9)
+        auxotrophy = dict()
+        for i in range(auxotrophy_size):
+            auxotrophy['compound_{}'.format(i)] = {'is_auxotrophic': (random.randint(0, 32) < 16)}
+        attributes['auxotrophy'] = auxotrophy
+
+        pathway_size = 100
+        pathways = dict()
+        for i in range(pathway_size):
+            pathway = dict()
+            pathway['name'] = 'pathway_name_{}'.format(i)
+            pathway['class_1'] = ['class_1_A', 'class_1_B', 'class_1_C'][random.randint(0, 32) % 3]
+            pathway['class_2'] = ['class_2_A', 'class_2_B', 'class_2_C'][random.randint(0, 32) % 3]
+            pathway['gapfilled_rxn'] = random.randint(0, 32)
+            pathway['functional_rxn'] = random.randint(0, 32)
+            pathway['nonfunctional_rxn'] = random.randint(0, 32)
+            pathway['pathway_size'] = random.randint(0, 32)
+            pathway['is_present'] = (random.randint(0, 32) < 16)
+            pathway['gene_count'] = random.randint(0, 32)
+            pathway['average_genes_per_reaction'] = random.random()
+            pathway['stddev_genes_per_reaction'] = random.random()
+            pathway['average_coverage_per_reaction'] = random.random()
+            pathway['stddev_coverage_per_reaction'] = random.random()
+            pathways['pathway_{}'.format(i)] = pathway
+        attributes['pathways'] = pathways
+
+        fake_model_data['attributes'] = attributes
+
         random.seed(model_ref.split('/')[-1])
-
-        data = {'data': []}
-
-        example_model_file = os.path.join('data', 'example_model.json')
-
-        with open(example_model_file) as json_file:
-            fake_model_data = json.load(json_file)
-
         model_name = 'model_' + str(random.randint(0, 1024))
-
-        attributes = fake_model_data['attributes']
-        pathway_keys = [s for s in attributes.keys() if ('pathways_' in s)]
-
-        for pathway_key in pathway_keys:
-            pathway_data = attributes[pathway_key]
-            pathway_data['gf'] = random.randint(0, 64)
-            pathway_data['nonblocked'] = random.randint(0, 128)
-            pathway_data['rxn'] = random.randint(0, 64)
-
-        for i in range(500):
-            pathway_key = 'pathways_rn0{}'.format(str(1055 + i*2))
-            attributes[pathway_key] = {'gf': random.randint(0, 64),
-                                       'nonblocked': random.randint(0, 128),
-                                       'rxn': random.randint(0, 64)}
-
         data = {'data': [{'data': fake_model_data, 'info': [1, model_name]}]}
 
         return data
@@ -119,8 +149,9 @@ class kb_model_analysisTest(unittest.TestCase):
 
     def test_create_heatmap_analysis_template(self):
         params = {'workspace_id': self.wsId,
+                  'object_types': ['KBaseFile.SingleEndLibrary', 'KBaseFile.PairedEndLibrary'],
                   'workspace_scope': 'all_workspace',
-                  'object_types': ['KBaseFile.SingleEndLibrary', 'KBaseFile.PairedEndLibrary']}
+                  }
         returnVal = self.serviceImpl.create_heatmap_analysis_template(self.ctx, params)[0]
 
         self.assertIn('report_ref', returnVal)

@@ -66,15 +66,6 @@ class TemplateUtil:
 
         return report_output
 
-    def _build_ws_lookup_table(self, wsinfos):
-        ''' builds a lookup table, skips anything without a 'narrative' metadata field set '''
-        ws_lookup_table = {}
-        for ws_info in wsinfos:
-            if 'narrative' in ws_info[8]:
-                if ws_info[8]['narrative'].isdigit() and int(ws_info[8]['narrative']) > 0:
-                    ws_lookup_table[ws_info[0]] = ws_info
-        return ws_lookup_table
-
     def _build_workspace_ids(self, wsinfos):
         workspace_ids = list()
         for ws_info in wsinfos:
@@ -97,7 +88,31 @@ class TemplateUtil:
 
         return workspace_ids
 
+    def _get_obj_infos(self, object_types, workspace_ids):
+        obj_infos = list()
+        for object_type in object_types:
+
+            objs = self.ws_client.list_objects({'ids': workspace_ids,
+                                                'type': object_type,
+                                                'showDeleted': 0,
+                                                'showHidden': 0})
+
+            # choose correct FBAModel version
+            if 'KBaseFBA.FBAModel' in object_type:
+                if 'ci.kbase' in self.endpoint:
+                    latest_version = 14
+                elif 'appdev.kbase' in self.endpoint:
+                    latest_version = 11
+                else:
+                    latest_version = 12
+                objs = [obj for obj in objs if float(obj[2].split('-')[-1]) >= latest_version]
+
+            obj_infos.extend(objs)
+
+        return obj_infos
+
     def __init__(self, config):
+        self.endpoint = config['kbase-endpoint']
         self.callback_url = config['SDK_CALLBACK_URL']
         self.scratch = config['scratch']
         self.token = config['KB_AUTH_TOKEN']
@@ -132,13 +147,7 @@ class TemplateUtil:
         if not workspace_ids:
             workspace_ids = [workspace_id]
 
-        obj_infos = list()
-        for object_type in object_types:
-            objs = self.ws_client.list_objects({'ids': workspace_ids,
-                                                'type': object_type,
-                                                'showDeleted': 0,
-                                                'showHidden': 0})
-            obj_infos.extend(objs)
+        obj_infos = self._get_obj_infos(object_types, workspace_ids)
 
         if not obj_infos:
             raise ValueError("Cannot find any matching objects in any narrative")

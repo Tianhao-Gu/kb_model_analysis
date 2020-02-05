@@ -82,7 +82,7 @@ class kb_model_analysisTest(unittest.TestCase):
         attributes['base_atp'] = random.randint(0, 32)
 
         fbas = dict()
-        for fba_name in ['defined', 'rich']:
+        for fba_name in ['auxomedia', 'complete']:
             fbas[fba_name] = {'biomass': random.random(),
                               'Blocked': random.randint(0, 32),
                               'Negative': random.randint(0, 32),
@@ -104,8 +104,15 @@ class kb_model_analysisTest(unittest.TestCase):
         for i in range(pathway_size):
             pathway = dict()
             pathway['name'] = 'pathway_name_{}'.format(i)
-            pathway['class_1'] = ['class_1_A', 'class_1_B', 'class_1_C'][random.randint(0, 32) % 3]
-            pathway['class_2'] = ['class_2_A', 'class_2_B', 'class_2_C'][random.randint(0, 32) % 3]
+
+            class_1 = ['Metabolism', 'class_1_B', 'class_1_C'][random.randint(0, 32) % 3]
+            class_2 = ["Carbohydrate metabolism",
+                       "Lipid metabolism",
+                       "Nucleotide metabolism",
+                       "Amino acid metabolism"][random.randint(0, 32) % 4]
+            pathway['classes'] = [class_1, class_2]
+            # pathway['class_1'] = ['class_1_A', 'class_1_B', 'class_1_C'][random.randint(0, 32) % 3]
+            # pathway['class_2'] = ['class_2_A', 'class_2_B', 'class_2_C'][random.randint(0, 32) % 3]
             pathway['gapfilled_rxn'] = random.randint(0, 32)
             pathway['functional_rxn'] = random.randint(0, 32)
             pathway['nonfunctional_rxn'] = random.randint(0, 32)

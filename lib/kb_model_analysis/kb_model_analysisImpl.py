@@ -25,7 +25,7 @@ class kb_model_analysis:
     ######################################### noqa
     VERSION = "0.0.1"
     GIT_URL = "https://github.com/Tianhao-Gu/kb_model_analysis.git"
-    GIT_COMMIT_HASH = "0959bf449f9943340178b5f111254f70388e3b21"
+    GIT_COMMIT_HASH = "410c09153d4966628c6da256d438291cea389a39"
 
     #BEGIN_CLASS_HEADER
     @staticmethod
@@ -62,14 +62,16 @@ class kb_model_analysis:
         """
         :param params: instance of type "HeatmapAnalysisParams" -> structure:
            parameter "workspace_name" of String, parameter
-           "staging_file_path" of String
+           "staging_file_path" of String, parameter "attri_mapping_ref" of
+           String
         :returns: instance of type "ReportResults" -> structure: parameter
            "report_name" of String, parameter "report_ref" of String
         """
         # ctx is the context object
         # return variables are: output
         #BEGIN model_heatmap_analysis
-        self.validate_params(params, ['workspace_name', 'staging_file_path'])
+        self.validate_params(params, ['workspace_name'],
+                             opt_param=['staging_file_path', 'attri_mapping_ref'])
         output = self.heatmap_util.run_model_heatmap_analysis(params)
         #END model_heatmap_analysis
 

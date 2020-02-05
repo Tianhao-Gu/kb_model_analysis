@@ -74,7 +74,7 @@ class HeatmapUtil:
         modelcompounds = model_data.get('modelcompounds', [])
 
         fbas = attributes.get('fbas', {})
-        auxo_biomass = fbas.get('defined', {}).get('biomass', 0)
+        auxo_biomass = fbas.get('auxomedia', {}).get('biomass', 0)
 
         # build overall_stats
         overall_stats.append(model_name)  # model_name
@@ -100,7 +100,7 @@ class HeatmapUtil:
         # build reaction_stats
         reaction_stats.append(model_name)  # model_name
 
-        fbas_auxo = fbas.get('defined', {})
+        fbas_auxo = fbas.get('auxomedia', {})
         auxo_class_Negative = fbas_auxo.get('Negative', 0)
         auxo_class_Positive = fbas_auxo.get('Positive', 0)
 
@@ -110,7 +110,7 @@ class HeatmapUtil:
                               fbas_auxo.get('Variable', 0))  # Defined media functional
         reaction_stats.append(fbas_auxo.get('Blocked', 0))  # Defined media blocked
 
-        fbas_complete = fbas.get('rich', {})
+        fbas_complete = fbas.get('complete', {})
         complete_class_Negative = fbas_complete.get('Negative', 0)
         complete_class_Positive = fbas_complete.get('Positive', 0)
 
@@ -159,8 +159,9 @@ class HeatmapUtil:
         for pathway_id, pathway_data in pathways.items():
             pathway_ids.append(pathway_id)
             pathway_name = pathway_data.get('name') + ' [{}]'.format(pathway_count)
-            pathway_class1 = pathway_data.get('class_1') + ' [{}]'.format(pathway_count)
-            pathway_class2 = pathway_data.get('class_2') + ' [{}]'.format(pathway_count)
+            classes = pathway_data.get('classes', [])
+            pathway_class1 = classes[0] + ' [{}]'.format(pathway_count)
+            pathway_class2 = classes[1] + ' [{}]'.format(pathway_count)
             pathway_names.append(pathway_name)
             pathway_class1_names.append(pathway_class1)
             pathway_class2_names.append(pathway_class2)

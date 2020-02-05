@@ -102,7 +102,7 @@ class TemplateUtil:
                 if 'ci.kbase' in self.endpoint:
                     latest_version = 14
                 elif 'appdev.kbase' in self.endpoint:
-                    latest_version = 11
+                    latest_version = 12
                 else:
                     latest_version = 12
                 objs = [obj for obj in objs if float(obj[2].split('-')[-1]) >= latest_version]

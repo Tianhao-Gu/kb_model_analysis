@@ -35,6 +35,8 @@ class HeatmapUtil:
 
         # values = [[1, 0, 21, 50, 1], [20, 0, 60, 80, 30], [30, 60, 1, -10, 20]]
         # labels = ['model_1', 'model_2', 'model_3']
+        if len(labels) == 1:
+            return labels
         dist_matrix = pdist(values)
         linkage_matrix = linkage(dist_matrix)
 
@@ -367,11 +369,28 @@ class HeatmapUtil:
     def run_model_heatmap_analysis(self, params):
         staging_file_path = params.get('staging_file_path')
         workspace_name = params.get('workspace_name')
+        attri_mapping_ref = params.get('attri_mapping_ref')
 
-        model_file_path = self.dfu.download_staging_file(
-                        {'staging_file_subdir_path': staging_file_path}).get('copy_file_path')
+        if staging_file_path:
+            model_file_path = self.dfu.download_staging_file(
+                            {'staging_file_subdir_path': staging_file_path}).get('copy_file_path')
 
-        model_df = self._read_csv_file(model_file_path)
+            model_df = self._read_csv_file(model_file_path)
+        elif attri_mapping_ref:
+            attri_mapping_data = self.dfu.get_objects(
+                                        {'object_refs': [attri_mapping_ref]})['data'][0]['data']
+            attributes = pd.DataFrame(attri_mapping_data['attributes'])
+            instances = pd.DataFrame(attri_mapping_data['instances'])
+            am_df = attributes.join(instances)
+            model_name_idx = am_df['attribute'].tolist().index('model_name')
+            am_df.drop(columns=['source'], index=[model_name_idx], inplace=True)
+            am_df = am_df.T
+            am_df.columns = am_df.loc['attribute', :]
+            am_df.drop(index=['attribute'], inplace=True)
+
+            pathway_df = pd.DataFrame({model_name: fetched_pathway_value}, index=pathway_names)
+        else:
+            raise ValueError("Please provide valide staging file or attribute mapping")
 
         try:
             model_df.drop(columns=['model_name'], inplace=True)

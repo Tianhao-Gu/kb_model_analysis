@@ -19,6 +19,7 @@ module kb_model_analysis {
     typedef structure {
         string workspace_name;
         string staging_file_path;
+        string attri_mapping_ref;
     } HeatmapAnalysisParams;
 
     funcdef model_heatmap_analysis(HeatmapAnalysisParams params) returns (ReportResults output) authentication required;

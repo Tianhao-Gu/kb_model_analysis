@@ -24,13 +24,21 @@ suggestions:
 # Configure the display and description of parameters
 #
 parameters :
-    staging_file_path :
+    # staging_file_path :
+    #     ui-name : |
+    #         Model Comparison File Path
+    #     short-hint : |
+    #         Recognized extensions for the input file is .xlsx or .csv
+    #     long-hint  : |
+    #         Recognized extensions for the input file is .xlsx or .csv
+
+    attri_mapping_ref :
         ui-name : |
-            Model Comparison File Path
+            Model Comparison Attribute Mapping
         short-hint : |
-            Recognized extensions for the input file is .xlsx or .csv
+            AttributeMapping created by Model Comparison Template
         long-hint  : |
-            Recognized extensions for the input file is .xlsx or .csv
+            AttributeMapping created by Model Comparison Template
 
 description : |
     <p>Retrieve statistical data from models and visualize the comparison via a heatmap</p>

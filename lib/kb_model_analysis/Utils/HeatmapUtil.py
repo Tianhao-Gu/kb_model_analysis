@@ -388,7 +388,7 @@ class HeatmapUtil:
             am_df.columns = am_df.loc['attribute', :]
             am_df.drop(index=['attribute'], inplace=True)
 
-            pathway_df = pd.DataFrame({model_name: fetched_pathway_value}, index=pathway_names)
+            model_df = am_df
         else:
             raise ValueError("Please provide valide staging file or attribute mapping")
 

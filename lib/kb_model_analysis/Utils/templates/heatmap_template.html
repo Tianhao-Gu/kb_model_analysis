@@ -17,7 +17,7 @@ td, th {
 }
 
 div.heatmap {
-  width: 1300px;
+  width: 100%;
   height: 900px;
   border: 1px solid #dddddd;
 }
@@ -36,6 +36,7 @@ div.heatmap {
     <tr>
         <td>Data Field</td>
         <td><select id="data_field">
+                <option value="" selected="selected">Please Choose</option>
                 <!-- data_info -->
             </select>
         </td>
@@ -86,7 +87,7 @@ pathway_label.addEventListener('change', function (){
     drawHeatmap(data_field_value, metadata_label_value, pathway_label_value);
 });
 
-drawHeatmap(data_field_value, metadata_label_value, pathway_label_value);
+// drawHeatmap(data_field_value, metadata_label_value, pathway_label_value);
 
 function drawHeatmap(data_field_value, metadata_label_value, pathway_label_value) {
 
@@ -123,14 +124,15 @@ function drawHeatmap(data_field_value, metadata_label_value, pathway_label_value
         },
         yaxis: {
             automargin: true,
-            // tickangle: 45,
             tickfont: {
                 color : 'black',
             },
         },
     };
 
-    Plotly.newPlot('Heatmap', data, layout);
+    var config = {responsive: true};
+
+    Plotly.newPlot('Heatmap', data, layout, config);
 };
 
 

@@ -36,7 +36,6 @@ div.heatmap {
     <tr>
         <td>Data Field</td>
         <td><select id="data_field">
-                <option value="" selected="selected">Please Choose</option>
                 <!-- data_info -->
             </select>
         </td>
@@ -87,7 +86,7 @@ pathway_label.addEventListener('change', function (){
     drawHeatmap(data_field_value, metadata_label_value, pathway_label_value);
 });
 
-// drawHeatmap(data_field_value, metadata_label_value, pathway_label_value);
+drawHeatmap(data_field_value, metadata_label_value, pathway_label_value);
 
 function drawHeatmap(data_field_value, metadata_label_value, pathway_label_value) {
 

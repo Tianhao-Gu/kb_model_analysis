@@ -7,13 +7,19 @@ body {font-family: "Lato", sans-serif;}
 table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
-    width: 20%;
+    width: 60%;
 }
 
 td, th {
     border: 1px solid #dddddd;
     text-align: left;
     padding: 8px;
+}
+
+div.heatmap {
+  width: 100%;
+  height: 700px;
+  border: 1px solid #dddddd;
 }
 
 </style>
@@ -33,16 +39,12 @@ td, th {
                 <!-- data_info -->
             </select>
         </td>
-    </tr>
-    <tr>
         <td>Metadata Label</td>
         <td><select id="metadata_label">
                 <option value="" selected="selected">Please Choose</option>
                 <!-- metadata_info -->
             </select>
         </td>
-    </tr>
-    <tr>
         <td>Pathway Label</td>
         <td><select id="pathway_label">
                 <!-- pathway_info -->
@@ -51,8 +53,9 @@ td, th {
     </tr>
 
 </table>
-
-<div id='Heatmap'></div>
+<p></p>
+<p></p>
+<div id='Heatmap' class="heatmap"></div>
 <script>
 
 var data_json = $.getJSON({'url': "heatmap_data.json", 'async': false});
@@ -110,7 +113,7 @@ function drawHeatmap(data_field_value, metadata_label_value, pathway_label_value
     ];
 
     var layout = {
-        autosize: false,
+        // autosize: false,
         xaxis: {
             automargin: true,
             tickangle: 45,

@@ -124,6 +124,31 @@ class HeatmapUtil:
 
         return overall_stats, reaction_stats
 
+    def _check_model_obj_version(self, model_df):
+        model_refs = model_df.index.tolist()
+
+        for model_ref in model_refs:
+            model_info = self.dfu.get_objects({'object_refs': [model_ref]})['data'][0]['info']
+
+            model_type = model_info[2]
+
+            if 'KBaseFBA.FBAModel' not in model_type:
+                raise ValueError("Please provide only KBaseFBA.FBAModel objects")
+
+            obj_version = float(model_type.split('-')[-1])
+
+            if 'ci.kbase' in self.endpoint:
+                latest_version = 14
+            elif 'appdev.kbase' in self.endpoint:
+                latest_version = 12
+            else:
+                latest_version = 12
+
+            if obj_version < latest_version:
+                err_msg = "Please provde KBaseFBA.FBAModel with version greater than {}".format(
+                                                                                    latest_version)
+                raise ValueError(err_msg)
+
     def _build_model_comparison_data(self, model_df):
 
         logging.info('Start building overall and reaction statistics')
@@ -360,6 +385,7 @@ class HeatmapUtil:
 
     def __init__(self, config):
         self.callback_url = config['SDK_CALLBACK_URL']
+        self.endpoint = config['kbase-endpoint']
         self.scratch = config['scratch']
         self.token = config['KB_AUTH_TOKEN']
         self.dfu = DataFileUtil(self.callback_url)
@@ -391,6 +417,8 @@ class HeatmapUtil:
             model_df = am_df
         else:
             raise ValueError("Please provide valide staging file or attribute mapping")
+
+        self._check_model_obj_version(model_df)
 
         try:
             model_df.drop(columns=['model_name'], inplace=True)

@@ -23,9 +23,9 @@ class kb_model_analysis:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.1"
+    VERSION = "1.0.0"
     GIT_URL = "https://github.com/Tianhao-Gu/kb_model_analysis.git"
-    GIT_COMMIT_HASH = "410c09153d4966628c6da256d438291cea389a39"
+    GIT_COMMIT_HASH = "1420e8f01d8fbed373cf1b52e18ed3a687746387"
 
     #BEGIN_CLASS_HEADER
     @staticmethod

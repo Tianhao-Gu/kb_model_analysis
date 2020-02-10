@@ -130,7 +130,8 @@ class kb_model_analysisTest(unittest.TestCase):
 
         random.seed(model_ref.split('/')[-1])
         model_name = 'model_' + str(random.randint(0, 1024))
-        data = {'data': [{'data': fake_model_data, 'info': [1, model_name]}]}
+        data = {'data': [{'data': fake_model_data,
+                          'info': [1, model_name, 'KBaseFBA.FBAModel-14.0']}]}
 
         return data
 

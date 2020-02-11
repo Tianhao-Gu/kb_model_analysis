@@ -323,7 +323,7 @@ class HeatmapUtil:
                          'gapfilled_rxn', 'gapfilled_rxn_zscore',
                          'gapfilled_rxn_rownormalization', 'gapfilled_rxn_dividepathwaysize',
                          'nonfunctional_rxn', 'nonfunctional_rxn_zscore',
-                         'nonfunctionall_rxn_rownormalization', 'nonfunctional_rxn_dividepathwaysize',
+                         'nonfunctional_rxn_rownormalization', 'nonfunctional_rxn_dividepathwaysize',
                          'gene_count', 'gene_count_zscore',
                          'gene_count_rownormalization', 'gene_count_dividepathwaysize',
                          'average_genes_per_reaction', 'stddev_genes_per_reaction',

@@ -5,6 +5,7 @@ import os
 
 from kb_model_analysis.Utils.HeatmapUtil import HeatmapUtil
 from kb_model_analysis.Utils.TemplateUtil import TemplateUtil
+from kb_model_analysis.Utils.ImportAttributeMappingUtil import ImportAttributeMappingUtil
 #END_HEADER
 
 
@@ -25,7 +26,7 @@ class kb_model_analysis:
     ######################################### noqa
     VERSION = "1.0.0"
     GIT_URL = "https://github.com/Tianhao-Gu/kb_model_analysis.git"
-    GIT_COMMIT_HASH = "1420e8f01d8fbed373cf1b52e18ed3a687746387"
+    GIT_COMMIT_HASH = "ad4408db95fc6b23ad908865f2e2b303d714ce08"
 
     #BEGIN_CLASS_HEADER
     @staticmethod
@@ -105,6 +106,40 @@ class kb_model_analysis:
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
             raise ValueError('Method create_heatmap_analysis_template return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
+
+    def import_fbamodel_attribute_mapping_from_staging(self, ctx, params):
+        """
+        :param params: instance of type "FileToConditionSetParams" (required
+           params: staging_file_subdir_path: subdirectory file path e.g. for
+           file: /data/bulk/user_name/file_name staging_file_subdir_path is
+           file_name for file:
+           /data/bulk/user_name/subdir_1/subdir_2/file_name
+           staging_file_subdir_path is subdir_1/subdir_2/file_name
+           attribute_mapping_name: output ConditionSet object name
+           workspace_id: workspace name/ID of the object) -> structure:
+           parameter "staging_file_subdir_path" of String, parameter
+           "workspace_id" of Long, parameter "attribute_mapping_name" of
+           String
+        :returns: instance of type "ReportResults" -> structure: parameter
+           "report_name" of String, parameter "report_ref" of String
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN import_fbamodel_attribute_mapping_from_staging
+
+        importer = ImportAttributeMappingUtil(self.config)
+        output = importer.import_attribute_mapping_from_staging(params)
+
+        reportVal = importer.generate_report(output['obj_ref'], params)
+        output.update(reportVal)
+        #END import_fbamodel_attribute_mapping_from_staging
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method import_fbamodel_attribute_mapping_from_staging return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]

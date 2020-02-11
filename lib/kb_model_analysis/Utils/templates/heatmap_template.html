@@ -92,7 +92,7 @@ function drawHeatmap(data_field_value, metadata_label_value, pathway_label_value
 
     var values = data_json[data_field_value].values;
     var columns = data_json[data_field_value].compound_names;
-    var pathways = data_json['pathways'][pathway_label_value];
+    var pathways = data_json[data_field_value]['pathways'][pathway_label_value];
 
     var columns_copied = JSON.parse(JSON.stringify(columns));
     if (metadata_label_value != "") {

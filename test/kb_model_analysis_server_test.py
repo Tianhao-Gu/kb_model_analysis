@@ -99,7 +99,7 @@ class kb_model_analysisTest(unittest.TestCase):
             auxotrophy['compound_{}'.format(i)] = {'is_auxotrophic': (random.randint(0, 32) < 16)}
         attributes['auxotrophy'] = auxotrophy
 
-        pathway_size = 100
+        pathway_size = 20
         pathways = dict()
         for i in range(pathway_size):
             pathway = dict()

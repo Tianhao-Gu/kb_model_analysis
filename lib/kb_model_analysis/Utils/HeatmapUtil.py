@@ -179,7 +179,6 @@ class HeatmapUtil:
 
         pathway_ids = list()
         pathway_names = list()
-        pathway_class1_names = list()
         pathway_class2_names = list()
         fetched_pathway_value = list()
         pathway_count = 0
@@ -187,19 +186,13 @@ class HeatmapUtil:
             pathway_ids.append(pathway_id)
             pathway_name = pathway_data.get('name') + ' [{}]'.format(pathway_count)
             classes = pathway_data.get('classes', [])
-            pathway_class1 = classes[0] + ' [{}]'.format(pathway_count)
             pathway_class2 = classes[1] + ' [{}]'.format(pathway_count)
             pathway_names.append(pathway_name)
-            pathway_class1_names.append(pathway_class1)
             pathway_class2_names.append(pathway_class2)
             fetched_pathway_value.append(pathway_data.get(field_type, 0))
             pathway_count += 1
         model_name = model_info[1] + ' [0]'
         pathway_df = pd.DataFrame({model_name: fetched_pathway_value}, index=pathway_names)
-
-        pathway_info = {'name': pathway_names,
-                        # 'class_1': pathway_class1_names,
-                        'class': pathway_class2_names}
 
         for model_ref in model_refs[1:]:
             model_obj = self.dfu.get_objects({'object_refs': [model_ref]})['data'][0]
@@ -216,9 +209,20 @@ class HeatmapUtil:
             model_name = model_info[1] + ' [{}]'.format(model_refs.index(model_ref))
             pathway_df[model_name] = fetched_pathway_value
 
-        ordered_label = self._compute_cluster_label_order(pathway_df.T.values.tolist(),
-                                                          pathway_df.T.index.tolist())
-        pathway_df = pathway_df.reindex(columns=ordered_label)
+        col_ordered_label = self._compute_cluster_label_order(pathway_df.T.values.tolist(),
+                                                              pathway_df.T.index.tolist())
+
+        idx_ordered_label = self._compute_cluster_label_order(pathway_df.values.tolist(),
+                                                              pathway_df.index.tolist())
+
+        pathway_df = pathway_df.reindex(index=idx_ordered_label, columns=col_ordered_label)
+
+        class_ordered_label = list()
+        for label in pathway_df.index.tolist():
+            class_ordered_label.append(pathway_class2_names[pathway_names.index(label)])
+
+        pathway_info = {'name': pathway_df.index.tolist(),
+                        'class': class_ordered_label}
 
         return pathway_df, pathway_info
 
@@ -277,9 +281,8 @@ class HeatmapUtil:
             pathway_df, pathway_info = self._get_pathway_heatmap_data(pathway_type, model_refs)
             pathway_name = pathway_name_map.get(pathway_type, pathway_type)
             heatmap_data.update({pathway_name: {'values': pathway_df.values.tolist(),
-                                                'compound_names': pathway_df.columns.tolist()}})
-
-        heatmap_data.update({'pathways': pathway_info})
+                                                'compound_names': pathway_df.columns.tolist(),
+                                                'pathways': pathway_info}})
 
         return heatmap_data
 
@@ -360,12 +363,10 @@ class HeatmapUtil:
 
         data_info = ""
         for data_name in heatmap_data.keys():
-            if data_name == 'pathways':
-                continue
             data_info += """\n<option value="{}">{}</option>\n""".format(data_name, data_name)
 
         pathway_info = ""
-        for pathway_name in heatmap_data.get('pathways').keys():
+        for pathway_name in heatmap_data.get(list(heatmap_data.keys())[0])['pathways'].keys():
             pathway_info += """\n<option value="{}">{}</option>\n""".format(pathway_name, pathway_name)
 
         heatmap_html = os.path.join(output_directory, 'heatmap.html')

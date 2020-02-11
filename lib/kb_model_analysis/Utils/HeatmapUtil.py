@@ -198,8 +198,8 @@ class HeatmapUtil:
         pathway_df = pd.DataFrame({model_name: fetched_pathway_value}, index=pathway_names)
 
         pathway_info = {'name': pathway_names,
-                        'class_1': pathway_class1_names,
-                        'class_2': pathway_class2_names}
+                        # 'class_1': pathway_class1_names,
+                        'class': pathway_class2_names}
 
         for model_ref in model_refs[1:]:
             model_obj = self.dfu.get_objects({'object_refs': [model_ref]})['data'][0]
@@ -260,13 +260,23 @@ class HeatmapUtil:
 
         heatmap_data = dict()
 
-        pathway_types = ['gapfilled_rxn', 'functional_rxn', 'nonfunctional_rxn', 'pathway_size',
-                         'gene_count', 'average_genes_per_reaction', 'stddev_genes_per_reaction',
+        pathway_types = ['functional_rxn', 'gapfilled_rxn', 'nonfunctional_rxn', 'gene_count',
+                         'average_genes_per_reaction', 'stddev_genes_per_reaction',
                          'average_coverage_per_reaction', 'stddev_coverage_per_reaction']
+
+        pathway_name_map = {'gapfilled_rxn': 'Gapfilled Reaction',
+                            'functional_rxn': 'Functional Reaction',
+                            'nonfunctional_rxn': 'Nonfunctional Reaction',
+                            'gene_count': 'Gene Count',
+                            'average_genes_per_reaction': 'Average Genes Per Reaction',
+                            'stddev_genes_per_reaction': 'Stddev Genes Per Reaction',
+                            'average_coverage_per_reaction': 'Average Coverage Per Reaction',
+                            'stddev_coverage_per_reaction': 'Stddev Coverage Per Reaction'}
 
         for pathway_type in pathway_types:
             pathway_df, pathway_info = self._get_pathway_heatmap_data(pathway_type, model_refs)
-            heatmap_data.update({pathway_type: {'values': pathway_df.values.tolist(),
+            pathway_name = pathway_name_map.get(pathway_type, pathway_type)
+            heatmap_data.update({pathway_name: {'values': pathway_df.values.tolist(),
                                                 'compound_names': pathway_df.columns.tolist()}})
 
         heatmap_data.update({'pathways': pathway_info})

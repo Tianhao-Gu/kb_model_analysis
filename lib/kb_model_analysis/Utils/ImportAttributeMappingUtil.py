@@ -3,7 +3,7 @@ import time
 import uuid
 
 from installed_clients.DataFileUtilClient import DataFileUtil
-from installed_clients.GenericsApiClient import GenericsAPI
+from installed_clients.GenericsAPIClient import GenericsAPI
 from installed_clients.KBaseReportClient import KBaseReport
 
 

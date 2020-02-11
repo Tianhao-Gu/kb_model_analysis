@@ -1,0 +1,41 @@
+name     : Import TSV/Excel File as FBAModelAttributeMapping from Staging Area
+subtitle : Import a TSV or Excel file from your staging area into your Narrative as an Attribute Mapping data object
+tooltip  : Import a TSV or Excel file from your staging area into your Narrative as an Attribute Mapping data object
+
+icon: fba-teal.png
+
+screenshots :
+    []
+
+suggestions :
+    apps:
+        related :
+            []
+        next :
+            []
+    methods:
+        related :
+            []
+        next :
+            []
+
+parameters :
+    staging_file_subdir_path :
+        ui-name : |
+            File Path
+        short-hint : |
+            File with tabular Attribute Mapping data.
+        long-hint  : |
+            Recognized extensions for the input file are .tsv or .xlsx
+
+    attribute_mapping_name :
+        ui-name : |
+            FBAModelAttributeMapping Object Name
+        short-hint : |
+            Provide a name for the FBAModel Attribute Mapping that will be created by this importer
+        long-hint : |
+            Provide a name for the FBAModel Attribute Mapping that will be created by this importer
+
+description : |
+    <p> Import a TSV or Excel file from your staging area into your Narrative as an FBAModel Attribute Mapping data object.
+    Please see the <a href="http://kbase.us/data-upload-download-guide/">Data Upload/Download Guide</a> for more information. </p>

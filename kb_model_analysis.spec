@@ -36,4 +36,23 @@ module kb_model_analysis {
 
     funcdef create_heatmap_analysis_template(HeatmapAnalysisTemplateParams params) returns (ReportResults output) authentication required;
 
+    /*
+        required params:
+        staging_file_subdir_path: subdirectory file path
+        e.g.
+          for file: /data/bulk/user_name/file_name
+          staging_file_subdir_path is file_name
+          for file: /data/bulk/user_name/subdir_1/subdir_2/file_name
+          staging_file_subdir_path is subdir_1/subdir_2/file_name
+        attribute_mapping_name: output ConditionSet object name
+        workspace_id: workspace name/ID of the object
+    */
+    typedef structure {
+        string staging_file_subdir_path;
+        int workspace_id;
+        string attribute_mapping_name;
+    } FileToConditionSetParams;
+
+    funcdef import_fbamodel_attribute_mapping_from_staging(FileToConditionSetParams params) returns (ReportResults output) authentication required;
+
 };

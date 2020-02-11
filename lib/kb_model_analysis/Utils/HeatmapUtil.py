@@ -7,6 +7,7 @@ import pandas as pd
 from xlrd.biffh import XLRDError
 import json
 import shutil
+from sklearn import preprocessing
 
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import pdist
@@ -166,9 +167,46 @@ class HeatmapUtil:
 
         return overall_stats, reaction_stats
 
+    def _normalize_data(self, df, normalization_type):
+
+        logging.info('Start normalizing data')
+
+        nor_df = df.copy(deep=True)
+        nor_df.fillna(0, inplace=True)
+
+        if normalization_type == 'zscore':
+            X_scaled = preprocessing.scale(nor_df.values, axis=1)
+            nor_df = pd.DataFrame(index=nor_df.index, columns=nor_df.columns, data=X_scaled)
+        elif normalization_type == 'rownormalization':
+            idx = nor_df.index.tolist()
+            nor_values = list()
+            for key in idx:
+                line_values = nor_df.loc[key, :].tolist()
+                max_value = max(line_values)
+
+                try:
+                    nor_values.append([i / float(max_value) for i in line_values])
+                except Exception:
+                    logging.warning('Cannot compute row normalize on\n{}: {}'.format(key,
+                                                                                     line_values))
+                    nor_values.append(line_values)
+
+            nor_df = pd.DataFrame(index=nor_df.index, columns=nor_df.columns, data=nor_values)
+        else:
+            logging.warning('Unexpected normalization type: {}'.format(normalization_type))
+
+        return nor_df
+
     def _get_pathway_heatmap_data(self, field_type, model_refs):
 
         logging.info('Start building pathway heatmap data for {}'.format(field_type))
+
+        nor_type = field_type.split('_')[-1]
+        if nor_type not in ['zscore', 'rownormalization', 'dividepathwaysize']:
+            nor_type = None
+
+        if nor_type:
+            field_type = '_'.join(field_type.split('_')[:-1])
 
         first_model_ref = model_refs[0]
         model_obj = self.dfu.get_objects({'object_refs': [first_model_ref]})['data'][0]
@@ -189,8 +227,15 @@ class HeatmapUtil:
             pathway_class2 = classes[1] + ' [{}]'.format(pathway_count)
             pathway_names.append(pathway_name)
             pathway_class2_names.append(pathway_class2)
-            fetched_pathway_value.append(pathway_data.get(field_type, 0))
+            pathway_value = pathway_data.get(field_type, 0)
+            if nor_type == 'dividepathwaysize':
+                pathway_size = pathway_data.get('pathway_size', 1)
+                if pathway_size <= 0:
+                    pathway_size = 1
+                pathway_value = pathway_value / float(pathway_size)
+            fetched_pathway_value.append(pathway_value)
             pathway_count += 1
+
         model_name = model_info[1] + ' [0]'
         pathway_df = pd.DataFrame({model_name: fetched_pathway_value}, index=pathway_names)
 
@@ -204,10 +249,19 @@ class HeatmapUtil:
             fetched_pathway_value = list()
             for pathway_id in pathway_ids:
                 pathway_data = pathways.get(pathway_id, {})
-                fetched_pathway_value.append(pathway_data.get(field_type, 0))
+                pathway_value = pathway_data.get(field_type, 0)
+                if nor_type == 'dividepathwaysize':
+                    pathway_size = pathway_data.get('pathway_size', 1)
+                    if pathway_size <= 0:
+                        pathway_size = 1
+                    pathway_value = pathway_value / float(pathway_size)
+                fetched_pathway_value.append(pathway_value)
 
             model_name = model_info[1] + ' [{}]'.format(model_refs.index(model_ref))
             pathway_df[model_name] = fetched_pathway_value
+
+        if nor_type:
+            pathway_df = self._normalize_data(pathway_df, nor_type)
 
         col_ordered_label = self._compute_cluster_label_order(pathway_df.T.values.tolist(),
                                                               pathway_df.T.index.tolist())
@@ -264,18 +318,38 @@ class HeatmapUtil:
 
         heatmap_data = dict()
 
-        pathway_types = ['functional_rxn', 'gapfilled_rxn', 'nonfunctional_rxn', 'gene_count',
+        pathway_types = ['functional_rxn', 'functional_rxn_zscore',
+                         'functional_rxn_rownormalization', 'functional_rxn_dividepathwaysize',
+                         'gapfilled_rxn', 'gapfilled_rxn_zscore',
+                         'gapfilled_rxn_rownormalization', 'gapfilled_rxn_dividepathwaysize',
+                         'nonfunctional_rxn', 'nonfunctional_rxn_zscore',
+                         'nonfunctionall_rxn_rownormalization', 'nonfunctional_rxn_dividepathwaysize',
+                         'gene_count', 'gene_count_zscore',
+                         'gene_count_rownormalization', 'gene_count_dividepathwaysize',
                          'average_genes_per_reaction', 'stddev_genes_per_reaction',
                          'average_coverage_per_reaction', 'stddev_coverage_per_reaction']
 
-        pathway_name_map = {'gapfilled_rxn': 'Gapfilled Reaction',
-                            'functional_rxn': 'Functional Reaction',
-                            'nonfunctional_rxn': 'Nonfunctional Reaction',
-                            'gene_count': 'Gene Count',
-                            'average_genes_per_reaction': 'Average Genes Per Reaction',
-                            'stddev_genes_per_reaction': 'Stddev Genes Per Reaction',
-                            'average_coverage_per_reaction': 'Average Coverage Per Reaction',
-                            'stddev_coverage_per_reaction': 'Stddev Coverage Per Reaction'}
+        pathway_name_map = {
+            'functional_rxn': 'Functional Reaction',
+            'functional_rxn_zscore': 'Functional Reaction (Z-Score)',
+            'functional_rxn_rownormalization': 'Functional Reaction (Divide Row Maximum Value)',
+            'functional_rxn_dividepathwaysize': 'Functional Reaction (Divide Pathway Size)',
+            'gapfilled_rxn': 'Gapfilled Reaction',
+            'gapfilled_rxn_zscore': 'Gapfilled Reaction (Z-Score)',
+            'gapfilled_rxn_rownormalization': 'Gapfilled Reaction (Divide Row Maximum Value)',
+            'gapfilled_rxn_dividepathwaysize': 'Gapfilled Reaction (Divide Pathway Size)',
+            'nonfunctional_rxn': 'Nonfunctional Reaction',
+            'nonfunctional_rxn_zscore': 'Nonfunctional Reaction (Z-Score)',
+            'nonfunctional_rxn_rownormalization': 'Nonfunctional Reaction (Divide Row Maximum Value)',
+            'nonfunctional_rxn_dividepathwaysize': 'Nonfunctional Reaction (Divide Pathway Size)',
+            'gene_count': 'Gene Count',
+            'gene_count_zscore': 'Gene Count (Z-Score)',
+            'gene_count_rownormalization': 'Gene Count (Divide Row Maximum Value)',
+            'gene_count_dividepathwaysize': 'Gene Count (Divide Pathway Size)',
+            'average_genes_per_reaction': 'Average Genes Per Reaction',
+            'stddev_genes_per_reaction': 'Stddev Genes Per Reaction',
+            'average_coverage_per_reaction': 'Average Coverage Per Reaction',
+            'stddev_coverage_per_reaction': 'Stddev Coverage Per Reaction'}
 
         for pathway_type in pathway_types:
             pathway_df, pathway_info = self._get_pathway_heatmap_data(pathway_type, model_refs)

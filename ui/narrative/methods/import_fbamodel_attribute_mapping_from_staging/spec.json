@@ -1,9 +1,9 @@
 {
-  "ver" : "",
-  "authors" : ["jjeffryes"],
+  "ver": "0.0.1",
+  "authors" : ["tgu2"],
   "contact" : "http://kbase.us/contact-us/",
   "visible" : true,
-  "categories" : ["upload"],
+  "categories" : ["active", "upload", "metabolic_modeling"],
   "widgets": {
     "input": "kbaseNarrativeMethodInput",
     "output" : "no-display"
@@ -39,10 +39,6 @@
       "name" : "kb_model_analysis",
       "method" : "import_fbamodel_attribute_mapping_from_staging",
       "input_mapping" : [
-        {
-          "narrative_system_variable": "workspace",
-          "target_property": "workspace_name"
-        },
         {
           "narrative_system_variable": "workspace_id",
           "target_property": "workspace_id"

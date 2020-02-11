@@ -105,7 +105,7 @@ class ImportAttributeMappingUtil:
         report_params = {'message': upload_message,
                          'objects_created': [{'ref': obj_ref,
                                               'description': 'Imported FBAModelAttributeMapping'}],
-                         'workspace_name': params['workspace_name'],
+                         'workspace_id': params['workspace_id'],
                          'report_object_name': 'import_model_attri_mapping_report_' + uuid_string}
 
         kbase_report_client = KBaseReport(self.callback_url, token=self.token)

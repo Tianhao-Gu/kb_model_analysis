@@ -39,7 +39,7 @@ class HeatmapUtil:
         if len(labels) == 1:
             return labels
         dist_matrix = pdist(values)
-        linkage_matrix = linkage(dist_matrix)
+        linkage_matrix = linkage(dist_matrix, 'ward')
 
         dn = dendrogram(linkage_matrix, labels=labels, distance_sort='ascending')
 

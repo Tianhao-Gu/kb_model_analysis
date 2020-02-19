@@ -163,7 +163,8 @@ class HeatmapUtil:
                                                             'fbamodel_id': model_info[1],
                                                             'workspace': workspace_name,
                                                             'fbamodel_output_id': model_info[1]})
-                    new_ref = ret.get('ref')
+                    logging.warning('Generated new objects: {}'.format(ret))
+                    new_ref = ret.get('new_fbamodel_ref')
 
                     idx = model_df.index.values.tolist().index(model_ref)
                     model_df.index.values[idx] = new_ref

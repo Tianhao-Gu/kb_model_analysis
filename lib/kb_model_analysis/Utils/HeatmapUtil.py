@@ -155,7 +155,7 @@ class HeatmapUtil:
                                                                                     latest_version)
                 raise ValueError(err_msg)
 
-            if not model_data.get('pathways'):
+            if not model_data.get('attributes', {}).get('pathways', {}):
                 try:
                     logging.warning('Found empty attributes and pathways in {}'.format(model_ref))
                     logging.warning('Trying to run model characterization')

@@ -8,6 +8,8 @@ from xlrd.biffh import XLRDError
 import json
 import shutil
 from sklearn import preprocessing
+import traceback
+import sys
 
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import pdist
@@ -168,6 +170,8 @@ class HeatmapUtil:
 
                 except Exception:
                     logging.warning('failed to run run_model_characterization')
+                    logging.warning(traceback.format_exc())
+                    logging.warning(sys.exc_info()[2])
 
     def _build_model_comparison_data(self, model_df):
 

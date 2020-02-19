@@ -161,7 +161,7 @@ class HeatmapUtil:
                     logging.warning('Trying to run model characterization')
                     ret = self.fba_tools.run_model_characterization({
                                                             'fbamodel_id': model_info[1],
-                                                            'fbamodel_workspace': workspace_name,
+                                                            'workspace': workspace_name,
                                                             'fbamodel_output_id': model_info[1]})
                     new_ref = ret.get('ref')
 

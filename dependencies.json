@@ -3,6 +3,10 @@
   "type" : "sdk",
   "version_tag" : "release"
 }, {
+  "module_name" : "fba_tools",
+  "type" : "sdk",
+  "version_tag" : "dev"
+}, {
   "module_name" : "GenericsAPI",
   "type" : "sdk",
   "version_tag" : "beta"

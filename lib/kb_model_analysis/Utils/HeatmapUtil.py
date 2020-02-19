@@ -14,6 +14,7 @@ from scipy.spatial.distance import pdist
 
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.KBaseReportClient import KBaseReport
+from installed_clients.fba_toolsClient import fba_tools
 
 
 class HeatmapUtil:
@@ -125,11 +126,13 @@ class HeatmapUtil:
 
         return overall_stats, reaction_stats
 
-    def _check_model_obj_version(self, model_df):
+    def _check_model_obj_version(self, model_df, workspace_name):
         model_refs = model_df.index.tolist()
 
         for model_ref in model_refs:
-            model_info = self.dfu.get_objects({'object_refs': [model_ref]})['data'][0]['info']
+            model_obj = self.dfu.get_objects({'object_refs': [model_ref]})['data'][0]
+            model_info = model_obj['info']
+            model_data = model_obj['data']
 
             model_type = model_info[2]
 
@@ -149,6 +152,22 @@ class HeatmapUtil:
                 err_msg = "Please provde KBaseFBA.FBAModel with version greater than {}".format(
                                                                                     latest_version)
                 raise ValueError(err_msg)
+
+            if not model_data.get('pathways'):
+                try:
+                    logging.warning('Found empty attributes and pathways in {}'.format(model_ref))
+                    logging.warning('Trying to run model characterization')
+                    ret = self.fba_tools.run_model_characterization({
+                                                            'fbamodel_id': model_info[1],
+                                                            'fbamodel_workspace': workspace_name,
+                                                            'fbamodel_output_id': model_info[1]})
+                    new_ref = ret.get('ref')
+
+                    idx = model_df.index.values.tolist().index(model_ref)
+                    model_df.index.values[idx] = new_ref
+
+                except Exception:
+                    logging.warning('failed to run run_model_characterization')
 
     def _build_model_comparison_data(self, model_df):
 
@@ -474,6 +493,7 @@ class HeatmapUtil:
         self.scratch = config['scratch']
         self.token = config['KB_AUTH_TOKEN']
         self.dfu = DataFileUtil(self.callback_url)
+        self.fba_tools = fba_tools(self.callback_url)
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
 
@@ -503,7 +523,7 @@ class HeatmapUtil:
         else:
             raise ValueError("Please provide valide staging file or attribute mapping")
 
-        self._check_model_obj_version(model_df)
+        self._check_model_obj_version(model_df, workspace_name)
 
         try:
             model_df.drop(columns=['model_name'], inplace=True)
@@ -514,6 +534,8 @@ class HeatmapUtil:
             model_df.drop(columns=['model_index'], inplace=True)
         except KeyError:
             logging.info('model_index does not exist in excel')
+
+        logging.info('start building stats on {}'.format(model_df.index.tolist()))
 
         (overall_stats, reaction_stats) = self._build_model_comparison_data(model_df)
         heatmap_data = self._build_heatmap_data(model_df)

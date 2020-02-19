@@ -167,7 +167,7 @@ class HeatmapUtil:
                     new_ref = ret.get('new_fbamodel_ref')
 
                     idx = model_df.index.values.tolist().index(model_ref)
-                    model_df.index.values[idx] = new_ref
+                    model_df.index.values[idx] = '/'.join(new_ref.split('/')[:2])
 
                 except Exception:
                     logging.warning('failed to run run_model_characterization')

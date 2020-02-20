@@ -248,6 +248,8 @@ class HeatmapUtil:
         pathway_count = 0
         for pathway_id, pathway_data in pathways.items():
             pathway_ids.append(pathway_id)
+            pathway_data['total_functional_coverage'] = pathway_data.get(
+                        'average_coverage_per_reaction', 0) * pathway_data.get('functional_rxn', 0)
             pathway_name = pathway_data.get('name') + ' [{}]'.format(pathway_count)
             classes = pathway_data.get('classes', [])
             pathway_class2 = classes[1] + ' [{}]'.format(pathway_count)
@@ -275,6 +277,8 @@ class HeatmapUtil:
             fetched_pathway_value = list()
             for pathway_id in pathway_ids:
                 pathway_data = pathways.get(pathway_id, {})
+                pathway_data['total_functional_coverage'] = pathway_data.get(
+                        'average_coverage_per_reaction', 0) * pathway_data.get('functional_rxn', 0)
                 pathway_value = pathway_data.get(field_type, 0)
                 if nor_type == 'dividepathwaysize':
                     pathway_size = pathway_data.get('pathway_size', 1)
@@ -346,6 +350,9 @@ class HeatmapUtil:
 
         pathway_types = ['functional_rxn', 'functional_rxn_zscore',
                          'functional_rxn_rownormalization', 'functional_rxn_dividepathwaysize',
+                         'total_functional_coverage', 'total_functional_coverage_zscore',
+                         'total_functional_coverage_rownormalization',
+                         'total_functional_coverage_dividepathwaysize',
                          'gapfilled_rxn', 'gapfilled_rxn_zscore',
                          'gapfilled_rxn_rownormalization', 'gapfilled_rxn_dividepathwaysize',
                          'nonfunctional_rxn', 'nonfunctional_rxn_zscore',
@@ -360,6 +367,10 @@ class HeatmapUtil:
             'functional_rxn_zscore': 'Functional Reaction (Z-Score)',
             'functional_rxn_rownormalization': 'Functional Reaction (Divide Row Maximum Value)',
             'functional_rxn_dividepathwaysize': 'Functional Reaction (Divide Pathway Size)',
+            'total_functional_coverage': 'Total Functional Coverage',
+            'total_functional_coverage_zscore': 'Total Functional Coverage (Z-Score)',
+            'total_functional_coverage_rownormalization': 'Total Functional Coverage (Divide Row Maximum Value)',
+            'total_functional_coverage_dividepathwaysize': 'Total Functional Coverage (Divide Pathway Size)',
             'gapfilled_rxn': 'Gapfilled Reaction',
             'gapfilled_rxn_zscore': 'Gapfilled Reaction (Z-Score)',
             'gapfilled_rxn_rownormalization': 'Gapfilled Reaction (Divide Row Maximum Value)',

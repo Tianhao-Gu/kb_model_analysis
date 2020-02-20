@@ -164,15 +164,17 @@ class HeatmapUtil:
                                                             'workspace': workspace_name,
                                                             'fbamodel_output_id': model_info[1]})
                     logging.warning('Generated new objects: {}'.format(ret))
-                    new_ref = ret.get('new_fbamodel_ref')
+                    # new_ref = ret.get('new_fbamodel_ref')
 
-                    idx = model_df.index.values.tolist().index(model_ref)
-                    model_df.index.values[idx] = '/'.join(new_ref.split('/')[:2])
-
+                    # idx = model_df.index.values.tolist().index(model_ref)
+                    # model_df.index.values[idx] = '/'.join(new_ref.split('/')[:2])
                 except Exception:
                     logging.warning('failed to run run_model_characterization')
                     logging.warning(traceback.format_exc())
                     logging.warning(sys.exc_info()[2])
+
+            idx = model_df.index.values.tolist().index(model_ref)
+            model_df.index.values[idx] = '/'.join(model_ref.split('/')[:2])
 
     def _build_model_comparison_data(self, model_df):
 

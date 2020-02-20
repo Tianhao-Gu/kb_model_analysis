@@ -151,7 +151,7 @@ function download_csv() {
     if (metadata_label_value != "") {
         var meta = meta_json[metadata_label_value];
         columns_copied.forEach(function(element,index){
-            columns_copied[index] = meta[columns[index]].toString();
+            columns_copied[index] = meta[columns[index]].toString().replace(',', '');
         });
     };
 
@@ -160,10 +160,10 @@ function download_csv() {
     csv += "\n";
 
     pathways.slice(0).reverse().forEach(function(pathway) {
-        csv += pathway + ','
 
+        pathway = pathway.replace(',', '');
+        csv += pathway + ',';
         csv += values[pathways.indexOf(pathway)].join(',');
-
         csv += "\n";
     });
 

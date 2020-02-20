@@ -39,8 +39,10 @@ class HeatmapUtil:
         cached_obj = self.obj_cache.get(model_ref)
 
         if cached_obj:
+            logging.info('Getting object from cache')
             return cached_obj
         else:
+            logging.info('Getting object using DataFileUtil')
             model_obj = self.dfu.get_objects({'object_refs': [model_ref]})['data'][0]
             self.obj_cache[model_ref] = model_obj
             return model_obj

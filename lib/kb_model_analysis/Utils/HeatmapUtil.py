@@ -357,7 +357,7 @@ class HeatmapUtil:
 
             model_meta_data = list()
             for i, meta_data in enumerate(model_meta):
-                model_meta_data.append(meta_data + '[{}]'.format(i))
+                model_meta_data.append(meta_data + ' [{}]'.format(i))
 
             for i, model_name in enumerate(model_names):
                 model_meta_mapping.update({model_name: model_meta_data[i]})

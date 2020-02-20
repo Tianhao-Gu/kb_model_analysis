@@ -35,6 +35,16 @@ class HeatmapUtil:
             else:
                 raise
 
+    def _get_model_obj(self, model_ref):
+        cached_obj = self.obj_cache.get(model_ref)
+
+        if cached_obj:
+            return cached_obj
+        else:
+            model_obj = self.dfu.get_objects({'object_refs': [model_ref]})['data'][0]
+            self.obj_cache[model_ref] = model_obj
+            return model_obj
+
     def _compute_cluster_label_order(self, values, labels):
 
         # values = [[1, 0, 21, 50, 1], [20, 0, 60, 80, 30], [30, 60, 1, -10, 20]]
@@ -185,7 +195,7 @@ class HeatmapUtil:
         reaction_stats = list()
 
         for model_ref in model_refs:
-            model_obj = self.dfu.get_objects({'object_refs': [model_ref]})['data'][0]
+            model_obj = self._get_model_obj(model_ref)
             (model_overall_stats,
              model_reaction_stats) = self._get_model_overall_stats(model_obj, model_df, model_ref)
             overall_stats.append(model_overall_stats)
@@ -235,7 +245,7 @@ class HeatmapUtil:
             field_type = '_'.join(field_type.split('_')[:-1])
 
         first_model_ref = model_refs[0]
-        model_obj = self.dfu.get_objects({'object_refs': [first_model_ref]})['data'][0]
+        model_obj = self._get_model_obj(first_model_ref)
         model_data = model_obj['data']
         model_info = model_obj['info']
         attributes = model_data.get('attributes', {})
@@ -268,7 +278,7 @@ class HeatmapUtil:
         pathway_df = pd.DataFrame({model_name: fetched_pathway_value}, index=pathway_names)
 
         for model_ref in model_refs[1:]:
-            model_obj = self.dfu.get_objects({'object_refs': [model_ref]})['data'][0]
+            model_obj = self._get_model_obj(model_ref)
             model_data = model_obj['data']
             model_info = model_obj['info']
             attributes = model_data.get('attributes', {})
@@ -320,7 +330,7 @@ class HeatmapUtil:
 
         model_names = list()
         for i, model_ref in enumerate(model_refs):
-            model_obj = self.dfu.get_objects({'object_refs': [model_ref]})['data'][0]
+            model_obj = self._get_model_obj(model_ref)
             model_name = model_obj['info'][1]
             model_names.append(model_name + ' [{}]'.format(i))
 
@@ -514,6 +524,7 @@ class HeatmapUtil:
         self.fba_tools = fba_tools(self.callback_url)
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
+        self.obj_cache = dict()
 
     def run_model_heatmap_analysis(self, params):
         staging_file_path = params.get('staging_file_path')

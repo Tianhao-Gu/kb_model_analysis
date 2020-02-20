@@ -161,8 +161,8 @@ function download_csv() {
 
     pathways.slice(0).reverse().forEach(function(pathway) {
 
-        pathway = pathway.replace(',', '');
-        csv += pathway + ',';
+        var pathway_name = pathway.replace(',', '');
+        csv += pathway_name + ',';
         csv += values[pathways.indexOf(pathway)].join(',');
         csv += "\n";
     });

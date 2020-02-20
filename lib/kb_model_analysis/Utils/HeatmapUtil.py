@@ -173,6 +173,9 @@ class HeatmapUtil:
                     logging.warning('failed to run run_model_characterization')
                     logging.warning(traceback.format_exc())
                     logging.warning(sys.exc_info()[2])
+            else:
+                idx = model_df.index.values.tolist().index(model_ref)
+                model_df.index.values[idx] = '/'.join(model_ref.split('/')[:2])
 
     def _build_model_comparison_data(self, model_df):
 

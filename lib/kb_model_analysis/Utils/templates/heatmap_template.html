@@ -7,7 +7,7 @@ body {font-family: "Lato", sans-serif;}
 table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
-    width: 60%;
+    width: 100%;
 }
 
 td, th {
@@ -50,6 +50,7 @@ div.heatmap {
                 <!-- pathway_info -->
             </select>
         </td>
+        <td><button onclick="download_csv()">Download CSV</button></td>
     </tr>
 
 </table>
@@ -132,6 +133,45 @@ function drawHeatmap(data_field_value, metadata_label_value, pathway_label_value
     var config = {responsive: true};
 
     Plotly.newPlot('Heatmap', data, layout, config);
+};
+
+function download_csv() {
+    var csv = '';
+    var data = [['', '']];
+    data.forEach(function(row) {
+            csv += row.join(',');
+            csv += "\n";
+    });
+
+    var values = data_json[data_field_value].values;
+    var columns = data_json[data_field_value].compound_names;
+    var pathways = data_json[data_field_value]['pathways'][pathway_label_value];
+
+    var columns_copied = JSON.parse(JSON.stringify(columns));
+    if (metadata_label_value != "") {
+        var meta = meta_json[metadata_label_value];
+        columns_copied.forEach(function(element,index){
+            columns_copied[index] = meta[columns[index]].toString();
+        });
+    };
+
+    csv += ' ,'
+    csv += columns_copied.join(',');
+    csv += "\n";
+
+    pathways.slice(0).reverse().forEach(function(pathway) {
+        csv += pathway + ','
+
+        csv += values[pathways.indexOf(pathway)].join(',');
+
+        csv += "\n";
+    });
+
+    var hiddenElement = document.createElement('a');
+    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+    hiddenElement.target = '_blank';
+    hiddenElement.download = data_field_value + '.csv';
+    hiddenElement.click();
 };
 
 

@@ -10,6 +10,7 @@ import shutil
 from sklearn import preprocessing
 import traceback
 import sys
+import copy
 
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import pdist
@@ -239,6 +240,8 @@ class HeatmapUtil:
 
         logging.info('Start building pathway heatmap data for {}'.format(field_type))
 
+        ori_field_type = copy.deepcopy(field_type)
+
         nor_type = field_type.split('_')[-1]
         if nor_type not in ['zscore', 'rownormalization', 'dividepathwaysize']:
             nor_type = None
@@ -257,12 +260,19 @@ class HeatmapUtil:
         pathway_names = list()
         pathway_class2_names = list()
         fetched_pathway_value = list()
+        pathway_name_id_map = dict()
         pathway_count = 0
         for pathway_id, pathway_data in pathways.items():
-            pathway_ids.append(pathway_id)
+            if ori_field_type == 'functional_rxn':
+                pathway_ids.append(pathway_id)
+            elif pathway_id in self.functional_rxn_pathways:
+                pathway_ids.append(pathway_id)
+            else:
+                continue
             pathway_data['total_functional_coverage'] = pathway_data.get(
                         'average_coverage_per_reaction', 0) * pathway_data.get('functional_rxn', 0)
             pathway_name = pathway_data.get('name') + ' [{}]'.format(pathway_count)
+            pathway_name_id_map[pathway_name] = pathway_id
             classes = pathway_data.get('classes', [])
             pathway_class2 = classes[1] + ' [{}]'.format(pathway_count)
             pathway_names.append(pathway_name)
@@ -301,6 +311,10 @@ class HeatmapUtil:
 
             model_name = model_info[1] + ' [{}]'.format(model_refs.index(model_ref))
             pathway_df[model_name] = fetched_pathway_value
+
+        if ori_field_type == 'functional_rxn':
+            pathway_df = pathway_df.loc[(pathway_df != 0).any(1)]
+            self.functional_rxn_pathways = [pathway_name_id_map[x] for x in pathway_df.index.tolist()]
 
         if nor_type:
             pathway_df = self._normalize_data(pathway_df, nor_type)
@@ -527,6 +541,8 @@ class HeatmapUtil:
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
         self.obj_cache = dict()
+
+        self.functional_rxn_pathways = list()
 
     def run_model_heatmap_analysis(self, params):
         staging_file_path = params.get('staging_file_path')

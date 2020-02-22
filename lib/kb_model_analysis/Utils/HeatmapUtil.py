@@ -101,7 +101,7 @@ class HeatmapUtil:
         overall_stats.append(attributes.get('gene_count', 0))  # Total genes
         overall_stats.append(len(modelcompounds))  # Total compounds
         overall_stats.append(attributes.get('core_gapfilling', 0))  # Core gapfilling
-        overall_stats.append(attributes.get('base_gapfilling', 0))  # Rich media gapfilling
+        overall_stats.append(attributes.get('baseline_gapfilling', 0))  # Rich media gapfilling
         overall_stats.append(attributes.get('base_atp', 0))  # ATP per mol glucose
         overall_stats.append(auxo_biomass)  # Rich biomass yield
 

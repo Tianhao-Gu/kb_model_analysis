@@ -37,7 +37,7 @@
     "service-mapping" : {
       "url" : "",
       "name" : "kb_model_analysis",
-      "method" : "import_fbamodel_attribute_mapping_from_staging",
+      "method" : "import_fbamodel_set_from_staging",
       "input_mapping" : [
         {
           "narrative_system_variable": "workspace_id",

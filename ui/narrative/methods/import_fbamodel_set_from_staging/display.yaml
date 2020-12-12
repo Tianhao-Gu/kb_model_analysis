@@ -32,9 +32,9 @@ parameters :
         ui-name : |
             FBAModelSet Object Name
         short-hint : |
-            Provide a name for the FBAModel Attribute Mapping that will be created by this importer
+            Provide a name for the FBAModelSet that will be created by this importer
         long-hint : |
-            Provide a name for the FBAModel Attribute Mapping that will be created by this importer
+            Provide a name for the FBAModelSet that will be created by this importer
 
 description : |
     <p> Import a TSV or Excel file from your staging area into your Narrative as an FBAModelSet data object.

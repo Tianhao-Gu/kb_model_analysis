@@ -34,11 +34,11 @@ parameters :
 
     attri_mapping_ref :
         ui-name : |
-            Model Comparison Attribute Mapping
+            Model Set Object
         short-hint : |
-            AttributeMapping created by Model Comparison Template
+            Model Set Object
         long-hint  : |
-            AttributeMapping created by Model Comparison Template
+            Model Set Object
 
 description : |
     <p>Retrieve statistical data from models and visualize the comparison via a heatmap</p>

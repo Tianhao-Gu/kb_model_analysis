@@ -26,7 +26,7 @@ class kb_model_analysis:
     ######################################### noqa
     VERSION = "1.0.0"
     GIT_URL = "https://github.com/Tianhao-Gu/kb_model_analysis.git"
-    GIT_COMMIT_HASH = "ad4408db95fc6b23ad908865f2e2b303d714ce08"
+    GIT_COMMIT_HASH = "d9219d207b80c506da93819f88659c591a6eec69"
 
     #BEGIN_CLASS_HEADER
     @staticmethod
@@ -110,7 +110,7 @@ class kb_model_analysis:
         # return the results
         return [output]
 
-    def import_fbamodel_attribute_mapping_from_staging(self, ctx, params):
+    def import_fbamodel_set_from_staging(self, ctx, params):
         """
         :param params: instance of type "FileToConditionSetParams" (required
            params: staging_file_subdir_path: subdirectory file path e.g. for
@@ -128,18 +128,17 @@ class kb_model_analysis:
         """
         # ctx is the context object
         # return variables are: output
-        #BEGIN import_fbamodel_attribute_mapping_from_staging
-
+        #BEGIN import_fbamodel_set_from_staging
         importer = ImportAttributeMappingUtil(self.config)
         output = importer.import_attribute_mapping_from_staging(params)
 
         reportVal = importer.generate_report(output['obj_ref'], params)
         output.update(reportVal)
-        #END import_fbamodel_attribute_mapping_from_staging
+        #END import_fbamodel_set_from_staging
 
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
-            raise ValueError('Method import_fbamodel_attribute_mapping_from_staging return value ' +
+            raise ValueError('Method import_fbamodel_set_from_staging return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]

@@ -53,6 +53,6 @@ module kb_model_analysis {
         string attribute_mapping_name;
     } FileToConditionSetParams;
 
-    funcdef import_fbamodel_attribute_mapping_from_staging(FileToConditionSetParams params) returns (ReportResults output) authentication required;
+    funcdef import_fbamodel_set_from_staging(FileToConditionSetParams params) returns (ReportResults output) authentication required;
 
 };

@@ -346,10 +346,10 @@ class Application(object):
                              name='kb_model_analysis.create_heatmap_analysis_template',
                              types=[dict])
         self.method_authentication['kb_model_analysis.create_heatmap_analysis_template'] = 'required'  # noqa
-        self.rpc_service.add(impl_kb_model_analysis.import_fbamodel_attribute_mapping_from_staging,
-                             name='kb_model_analysis.import_fbamodel_attribute_mapping_from_staging',
+        self.rpc_service.add(impl_kb_model_analysis.import_fbamodel_set_from_staging,
+                             name='kb_model_analysis.import_fbamodel_set_from_staging',
                              types=[dict])
-        self.method_authentication['kb_model_analysis.import_fbamodel_attribute_mapping_from_staging'] = 'required'  # noqa
+        self.method_authentication['kb_model_analysis.import_fbamodel_set_from_staging'] = 'required'  # noqa
         self.rpc_service.add(impl_kb_model_analysis.status,
                              name='kb_model_analysis.status',
                              types=[dict])

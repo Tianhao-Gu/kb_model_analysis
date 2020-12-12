@@ -99,12 +99,12 @@ class ImportAttributeMappingUtil:
 
         object_data = self.dfu.get_objects(get_objects_params)
 
-        upload_message += "FBAModelAttributeMapping Name: "
+        upload_message += "FBAModelSet Name: "
         upload_message += str(object_data.get('data')[0].get('info')[1]) + '\n'
         upload_message += 'Imported File: {}\n'.format(params.get('staging_file_subdir_path'))
         report_params = {'message': upload_message,
                          'objects_created': [{'ref': obj_ref,
-                                              'description': 'Imported FBAModelAttributeMapping'}],
+                                              'description': 'Imported FBAModelSet'}],
                          'workspace_id': params['workspace_id'],
                          'report_object_name': 'import_model_attri_mapping_report_' + uuid_string}
 

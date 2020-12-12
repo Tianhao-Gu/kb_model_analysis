@@ -145,7 +145,7 @@ class HeatmapUtil:
         model_refs = model_df.index.tolist()
 
         for model_ref in model_refs:
-            model_obj = self.dfu.get_objects({'object_refs': [model_ref]})['data'][0]
+            model_obj = self._get_model_obj(model_ref)
             model_info = model_obj['info']
             model_data = model_obj['data']
 
@@ -544,6 +544,33 @@ class HeatmapUtil:
 
         self.functional_rxn_pathways = list()
 
+    def model_set_to_functional_profiles(self, params):
+        workspace_name = params.get('workspace_name')
+        attri_mapping_ref = params.get('attri_mapping_ref')
+        profile_types = params.get('profile_types', {})
+
+        profile_types = [item[0] for item in profile_types.items() if item[1]]
+        if not profile_types:
+            raise ValueError('Please choose at least one profile type to be created')
+
+        attri_mapping_obj = self.dfu.get_objects(
+                                    {'object_refs': [attri_mapping_ref]})['data'][0]
+        attri_mapping_data = attri_mapping_obj['data']
+        attri_mapping_name = attri_mapping_obj['info'][1]
+        attributes = pd.DataFrame(attri_mapping_data['attributes'])
+        instances = pd.DataFrame(attri_mapping_data['instances'])
+        model_df = attributes.join(instances)
+        model_name_idx = model_df['attribute'].tolist().index('model_name')
+        model_df.drop(columns=['source'], index=[model_name_idx], inplace=True)
+        model_df = model_df.T
+        model_df.columns = model_df.loc['attribute', :]
+        model_df.drop(index=['attribute'], inplace=True)
+
+        self._check_model_obj_version(model_df, workspace_name)
+
+        fc_profile_data = self._build_func_profile_data(model_df, profile_types,
+                                                        attri_mapping_name)
+
     def run_model_heatmap_analysis(self, params):
         staging_file_path = params.get('staging_file_path')
         workspace_name = params.get('workspace_name')
@@ -571,16 +598,6 @@ class HeatmapUtil:
             raise ValueError("Please provide valide staging file or attribute mapping")
 
         self._check_model_obj_version(model_df, workspace_name)
-
-        try:
-            model_df.drop(columns=['model_name'], inplace=True)
-        except KeyError:
-            logging.info('model_name does not exist in excel')
-
-        try:
-            model_df.drop(columns=['model_index'], inplace=True)
-        except KeyError:
-            logging.info('model_index does not exist in excel')
 
         logging.info('start building stats on {}'.format(model_df.index.tolist()))
 

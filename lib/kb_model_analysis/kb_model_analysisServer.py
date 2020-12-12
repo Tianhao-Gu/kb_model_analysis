@@ -342,6 +342,10 @@ class Application(object):
                              name='kb_model_analysis.model_heatmap_analysis',
                              types=[dict])
         self.method_authentication['kb_model_analysis.model_heatmap_analysis'] = 'required'  # noqa
+        self.rpc_service.add(impl_kb_model_analysis.model_set_to_functional_profiles,
+                             name='kb_model_analysis.model_set_to_functional_profiles',
+                             types=[dict])
+        self.method_authentication['kb_model_analysis.model_set_to_functional_profiles'] = 'required'  # noqa
         self.rpc_service.add(impl_kb_model_analysis.create_heatmap_analysis_template,
                              name='kb_model_analysis.create_heatmap_analysis_template',
                              types=[dict])

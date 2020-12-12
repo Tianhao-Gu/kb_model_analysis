@@ -26,7 +26,7 @@ class kb_model_analysis:
     ######################################### noqa
     VERSION = "1.0.0"
     GIT_URL = "https://github.com/Tianhao-Gu/kb_model_analysis.git"
-    GIT_COMMIT_HASH = "d9219d207b80c506da93819f88659c591a6eec69"
+    GIT_COMMIT_HASH = "5fea6e4a4c531810af935b4507e5786e81fe79ae"
 
     #BEGIN_CLASS_HEADER
     @staticmethod
@@ -79,6 +79,32 @@ class kb_model_analysis:
         # At some point might do deeper type checking...
         if not isinstance(output, dict):
             raise ValueError('Method model_heatmap_analysis return value ' +
+                             'output is not type dict as required.')
+        # return the results
+        return [output]
+
+    def model_set_to_functional_profiles(self, ctx, params):
+        """
+        :param params: instance of type "MS2FPParams" -> structure: parameter
+           "workspace_name" of String, parameter "attri_mapping_ref" of
+           String, parameter "profile_types" of mapping from String to type
+           "boolean" (A boolean - 0 for false, 1 for true.)
+        :returns: instance of type "MS2FPResults" -> structure: parameter
+           "report_name" of String, parameter "report_ref" of String,
+           parameter "functional_profile_refs" of list of type "obj_ref" (An
+           X/Y/Z style reference)
+        """
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN model_set_to_functional_profiles
+        self.validate_params(params, ['workspace_name', 'attri_mapping_ref'],
+                             opt_param=['profile_types'])
+        output = self.heatmap_util.model_set_to_functional_profiles(params)
+        #END model_set_to_functional_profiles
+
+        # At some point might do deeper type checking...
+        if not isinstance(output, dict):
+            raise ValueError('Method model_set_to_functional_profiles return value ' +
                              'output is not type dict as required.')
         # return the results
         return [output]

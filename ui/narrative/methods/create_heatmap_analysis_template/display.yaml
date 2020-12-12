@@ -1,7 +1,7 @@
 #
 # define display information
 #
-name: Create Model Comparison Template
+name: Create Model Set Template
 
 tooltip: |
     Create a template file for Model Comparison app

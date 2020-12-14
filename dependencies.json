@@ -3,6 +3,10 @@
   "type" : "sdk",
   "version_tag" : "release"
 }, {
+  "module_name" : "FakeObjectsForTests",
+  "type" : "sdk",
+  "version_tag" : "release"
+}, {
   "module_name" : "fba_tools",
   "type" : "sdk",
   "version_tag" : "dev"
@@ -18,4 +22,8 @@
   "module_name" : "Workspace",
   "type" : "core",
   "file_path" : "https://raw.githubusercontent.com/kbase/workspace_deluxe/master/workspace.spec"
+}, {
+  "module_name" : "WsLargeDataIO",
+  "type" : "sdk",
+  "version_tag" : "release"
 } ]

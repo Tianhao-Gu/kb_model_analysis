@@ -11,11 +11,13 @@ from sklearn import preprocessing
 import traceback
 import sys
 import copy
+import math
 
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import pdist
 
 from installed_clients.DataFileUtilClient import DataFileUtil
+from installed_clients.WsLargeDataIOClient import WsLargeDataIO
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.fba_toolsClient import fba_tools
 
@@ -480,11 +482,89 @@ class HeatmapUtil:
 
         return heatmap_meta
 
-    def _create_func_profile(self, pathway_df, fc_name):
-        logging.info('Start creating functional profile object: {}'.format(fc_name))
-        pass
+    @staticmethod
+    def _convert_size(size_bytes):
+        if size_bytes == 0:
+            return "0B"
+        size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+        i = int(math.floor(math.log(size_bytes, 1024)))
+        p = math.pow(1024, i)
+        s = round(size_bytes / p, 2)
+        return "%s %s" % (s, size_name[i])
 
-    def _build_func_profile_data(self, model_df, profile_types, attri_mapping_name):
+    def _calculate_object_size(self, func_profile_data):
+        json_size = 0
+        try:
+            logging.info('start calculating object size')
+            json_object = json.dumps(func_profile_data).encode("utf-8")
+            json_size = len(json_object)
+            size_str = self._convert_size(json_size)
+            logging.info('serialized object JSON size: {}'.format(size_str))
+        except Exception:
+            logging.info('failed to calculate object size')
+
+        return json_size
+
+    def _create_func_profile(self, pathway_df, func_profile_obj_name, workspace_name,
+                             attri_mapping_ref):
+        logging.info('Start creating functional profile object: {}'.format(func_profile_obj_name))
+
+        if not isinstance(workspace_name, int):
+            workspace_id = self.dfu.ws_name_to_id(workspace_name)
+        else:
+            workspace_id = workspace_name
+
+        func_profile_data = dict()
+
+        func_profile_data['original_matrix_ref'] = attri_mapping_ref
+        func_profile_data['profile_type'] = 'ModelSet'
+        func_profile_data['profile_category'] = 'community'
+
+        profile_data = {'row_ids': pathway_df.index.tolist(),
+                        'col_ids': pathway_df.columns.tolist(),
+                        'values': pathway_df.values.tolist()}
+
+        func_profile_data['data'] = profile_data
+
+        obj_size = self._calculate_object_size(func_profile_data)
+
+        MB_200 = 200 * 1024 * 1024
+        GB_1 = 1 * 1024 * 1024 * 1024
+
+        if obj_size > GB_1:
+            raise ValueError('Object is too large')
+        elif obj_size <= MB_200:
+            logging.info('Starting saving object via DataFileUtil')
+            info = self.dfu.save_objects({
+                "id": workspace_id,
+                "objects": [{
+                    "type": 'KBaseProfile.FunctionalProfile',
+                    "data": func_profile_data,
+                    "name": func_profile_obj_name
+                }]
+            })[0]
+        else:
+            logging.info('Starting saving object via WsLargeDataIO')
+            data_path = os.path.join(self.scratch,
+                                     func_profile_obj_name + "_" + str(uuid.uuid4()) + ".json")
+            logging.info('Dumpping object data to file: {}'.format(data_path))
+            json.dump(func_profile_data, open(data_path, 'w'))
+
+            info = self.ws_large_data.save_objects({
+                "id": workspace_id,
+                "objects": [{
+                    "type": 'KBaseProfile.FunctionalProfile',
+                    "data_json_file": data_path,
+                    "name": func_profile_obj_name
+                }]
+            })[0]
+
+        obj_ref = "%s/%s/%s" % (info[6], info[0], info[4])
+
+        return obj_ref
+
+    def _build_func_profile_data(self, model_df, profile_types, attri_mapping_name,
+                                 workspace_name, attri_mapping_ref):
 
         logging.info('Start building functional profile data')
         model_refs = model_df.index.tolist()
@@ -500,10 +580,6 @@ class HeatmapUtil:
                                                                             calculation_type,
                                                                             model_refs)
 
-                # pathway_name = pathway_name_map.get(calculation_type, calculation_type)
-                # fc_profile_data.update({calculation_type: {'pathway_df': pathway_df,
-                #                                            'pathway_col_mapping_info': pathway_col_mapping_info}})
-
                 fc_profile_data.update({calculation_type: {'values': pathway_df.values.tolist(),
                                                            'compound_names': pathway_df.columns.tolist(),
                                                            'index': pathway_df.index.tolist(),
@@ -511,7 +587,9 @@ class HeatmapUtil:
 
                 if suffix == '':
                     fcp_ref = self._create_func_profile(pathway_df,
-                                                        attri_mapping_name + '_{}'.format(profile_type))
+                                                        attri_mapping_name + '_{}'.format(profile_type),
+                                                        workspace_name,
+                                                        attri_mapping_ref)
                     fc_profile_refs.append(fcp_ref)
 
         return fc_profile_data, fc_profile_refs
@@ -846,6 +924,7 @@ class HeatmapUtil:
         self.scratch = config['scratch']
         self.token = config['KB_AUTH_TOKEN']
         self.dfu = DataFileUtil(self.callback_url)
+        self.ws_large_data = WsLargeDataIO(self.callback_url, service_ver='beta')
         self.fba_tools = fba_tools(self.callback_url)
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
@@ -878,12 +957,13 @@ class HeatmapUtil:
         self._check_model_obj_version(model_df, workspace_name)
 
         fc_profile_data, fc_profile_refs = self._build_func_profile_data(model_df, profile_types,
-                                                                         attri_mapping_name)
+                                                                         attri_mapping_name,
+                                                                         workspace_name,
+                                                                         attri_mapping_ref)
         heatmap_meta = self._build_model_set_meta(model_df)
 
         html_files = self._generate_fc_profile_report(fc_profile_data, heatmap_meta, profile_types)
 
-        fc_profile_refs = ['28327/195/8', '28327/453/1']
         objects_created = [{'ref': ref,
                             'description': 'Functional Porfile'} for ref in fc_profile_refs]
         report_params = {'message': '',

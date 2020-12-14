@@ -11,11 +11,13 @@ from sklearn import preprocessing
 import traceback
 import sys
 import copy
+import math
 
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import pdist
 
 from installed_clients.DataFileUtilClient import DataFileUtil
+from installed_clients.WsLargeDataIOClient import WsLargeDataIO
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.fba_toolsClient import fba_tools
 
@@ -145,7 +147,7 @@ class HeatmapUtil:
         model_refs = model_df.index.tolist()
 
         for model_ref in model_refs:
-            model_obj = self.dfu.get_objects({'object_refs': [model_ref]})['data'][0]
+            model_obj = self._get_model_obj(model_ref)
             model_info = model_obj['info']
             model_data = model_obj['data']
 
@@ -231,10 +233,97 @@ class HeatmapUtil:
                     nor_values.append(line_values)
 
             nor_df = pd.DataFrame(index=nor_df.index, columns=nor_df.columns, data=nor_values)
+        elif normalization_type == 'dividepathwaysize':
+            pass
         else:
             logging.warning('Unexpected normalization type: {}'.format(normalization_type))
 
         return nor_df
+
+    def _get_fc_profile_heatmap_data(self, field_type, model_refs):
+        logging.info('Start building functional profile heatmap data for {}'.format(field_type))
+
+        nor_type = field_type.split('_')[-1]
+        if nor_type not in ['zscore', 'rownormalization', 'dividepathwaysize']:
+            nor_type = None
+
+        if nor_type:
+            field_type = '_'.join(field_type.split('_')[:-1])
+
+        # calculate available pathway_ids for all models
+        pathway_ids = set()
+        pathway_id_name_map = dict()
+        pathway_id_class2_map = dict()
+        for model_ref in model_refs:
+            model_obj = self._get_model_obj(model_ref)
+            model_data = model_obj['data']
+            attributes = model_data.get('attributes', {})
+            pathways = attributes.get('pathways', {})
+            model_pathway_ids = pathways.keys()
+            pathway_ids = pathway_ids | set(model_pathway_ids)
+
+            for pathway_id in model_pathway_ids:
+                if not pathway_id_name_map.get(pathway_id):
+                    pathway_data = pathways.get(pathway_id, {})
+                    pathway_name = pathway_data.get('name', 'NO PATHWAY NAME')
+                    pathway_id_name_map[pathway_id] = pathway_name
+
+                if not pathway_id_class2_map.get(pathway_id):
+                    pathway_data = pathways.get(pathway_id, {})
+                    pathway_classes = pathway_data.get('classes', ['', 'NO PATHWAY CLASS NAME'])
+                    try:
+                        pathway_class2 = pathway_classes[1]
+                    except Exception:
+                        pathway_class2 = 'NO PATHWAY CLASS NAME'
+                    pathway_id_class2_map[pathway_id] = pathway_class2
+
+        # append index number to each value in case of duplicates
+        for index, key in enumerate(pathway_id_name_map):
+            pathway_name = pathway_id_name_map.get(key) + ' [{}]'.format(index)
+            pathway_class2 = pathway_id_class2_map.get(key) + ' [{}]'.format(index)
+            pathway_id_name_map[key] = pathway_name
+            pathway_id_class2_map[key] = pathway_class2
+
+        pathway_df = pd.DataFrame(index=pathway_ids)
+
+        # fetch pathway values
+        for model_ref in model_refs:
+            model_obj = self._get_model_obj(model_ref)
+            model_data = model_obj['data']
+            attributes = model_data.get('attributes', {})
+            pathways = attributes.get('pathways', {})
+
+            fetched_pathway_value = list()
+            for pathway_id in pathway_df.index.to_list():
+                pathway_data = pathways.get(pathway_id, {})
+                pathway_data['total_functional_coverage'] = pathway_data.get(
+                        'average_coverage_per_reaction', 0) * pathway_data.get('functional_rxn', 0)
+                pathway_value = pathway_data.get(field_type, 0)
+                if nor_type == 'dividepathwaysize':
+                    pathway_size = pathway_data.get('pathway_size', 1)
+                    if pathway_size <= 0:
+                        pathway_size = 1
+                    pathway_value = pathway_value / float(pathway_size)
+                fetched_pathway_value.append(pathway_value)
+
+            pathway_df[model_ref] = fetched_pathway_value
+
+        if nor_type:
+            pathway_df = self._normalize_data(pathway_df, nor_type)
+
+        # run cluster on pathway dataframe
+        col_ordered_label = self._compute_cluster_label_order(pathway_df.T.values.tolist(),
+                                                              pathway_df.T.index.tolist())
+
+        idx_ordered_label = self._compute_cluster_label_order(pathway_df.values.tolist(),
+                                                              pathway_df.index.tolist())
+
+        pathway_df = pathway_df.reindex(index=idx_ordered_label, columns=col_ordered_label)
+
+        pathway_col_mapping_info = {'Pathway Name': [pathway_id_name_map[key] for key in pathway_df.index],
+                                    'Pathway Class': [pathway_id_class2_map[key] for key in pathway_df.index]}
+
+        return pathway_df, pathway_col_mapping_info
 
     def _get_pathway_heatmap_data(self, field_type, model_refs):
 
@@ -336,6 +425,33 @@ class HeatmapUtil:
 
         return pathway_df, pathway_info
 
+    def _build_model_set_meta(self, model_df):
+        logging.info('Start building heatmap metadata')
+
+        model_refs = model_df.index.tolist()
+        meta_data_names = model_df.columns.tolist()
+
+        heatmap_meta = dict()
+        for meta_data_name in meta_data_names:
+            model_meta_mapping = dict()
+            model_meta = model_df.loc[:, meta_data_name].tolist()
+
+            for i, model_ref in enumerate(model_refs):
+                model_meta_data = model_meta[i] + ' [{}]'.format(i)
+                model_meta_mapping.update({model_ref: model_meta_data})
+
+            heatmap_meta.update({meta_data_name: model_meta_mapping})
+
+        model_name_mapping = dict()
+        for i, model_ref in enumerate(model_refs):
+            model_obj = self._get_model_obj(model_ref)
+            model_name = model_obj['info'][1] + ' [{}]'.format(i)
+            model_name_mapping.update({model_ref: model_name})
+
+        heatmap_meta.update({'Model Name': model_name_mapping})
+
+        return heatmap_meta
+
     def _build_heatmap_meta(self, model_df):
 
         logging.info('Start building heatmap metadata')
@@ -365,6 +481,118 @@ class HeatmapUtil:
             heatmap_meta.update({meta_data_name: model_meta_mapping})
 
         return heatmap_meta
+
+    @staticmethod
+    def _convert_size(size_bytes):
+        if size_bytes == 0:
+            return "0B"
+        size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+        i = int(math.floor(math.log(size_bytes, 1024)))
+        p = math.pow(1024, i)
+        s = round(size_bytes / p, 2)
+        return "%s %s" % (s, size_name[i])
+
+    def _calculate_object_size(self, func_profile_data):
+        json_size = 0
+        try:
+            logging.info('start calculating object size')
+            json_object = json.dumps(func_profile_data).encode("utf-8")
+            json_size = len(json_object)
+            size_str = self._convert_size(json_size)
+            logging.info('serialized object JSON size: {}'.format(size_str))
+        except Exception:
+            logging.info('failed to calculate object size')
+
+        return json_size
+
+    def _create_func_profile(self, pathway_df, func_profile_obj_name, workspace_name,
+                             attri_mapping_ref):
+        logging.info('Start creating functional profile object: {}'.format(func_profile_obj_name))
+
+        if not isinstance(workspace_name, int):
+            workspace_id = self.dfu.ws_name_to_id(workspace_name)
+        else:
+            workspace_id = workspace_name
+
+        func_profile_data = dict()
+
+        func_profile_data['original_matrix_ref'] = attri_mapping_ref
+        func_profile_data['profile_type'] = 'ModelSet'
+        func_profile_data['profile_category'] = 'community'
+
+        profile_data = {'row_ids': pathway_df.index.tolist(),
+                        'col_ids': pathway_df.columns.tolist(),
+                        'values': pathway_df.values.tolist()}
+
+        func_profile_data['data'] = profile_data
+
+        obj_size = self._calculate_object_size(func_profile_data)
+
+        MB_200 = 200 * 1024 * 1024
+        GB_1 = 1 * 1024 * 1024 * 1024
+
+        if obj_size > GB_1:
+            raise ValueError('Object is too large')
+        elif obj_size <= MB_200:
+            logging.info('Starting saving object via DataFileUtil')
+            info = self.dfu.save_objects({
+                "id": workspace_id,
+                "objects": [{
+                    "type": 'KBaseProfile.FunctionalProfile',
+                    "data": func_profile_data,
+                    "name": func_profile_obj_name
+                }]
+            })[0]
+        else:
+            logging.info('Starting saving object via WsLargeDataIO')
+            data_path = os.path.join(self.scratch,
+                                     func_profile_obj_name + "_" + str(uuid.uuid4()) + ".json")
+            logging.info('Dumpping object data to file: {}'.format(data_path))
+            json.dump(func_profile_data, open(data_path, 'w'))
+
+            info = self.ws_large_data.save_objects({
+                "id": workspace_id,
+                "objects": [{
+                    "type": 'KBaseProfile.FunctionalProfile',
+                    "data_json_file": data_path,
+                    "name": func_profile_obj_name
+                }]
+            })[0]
+
+        obj_ref = "%s/%s/%s" % (info[6], info[0], info[4])
+
+        return obj_ref
+
+    def _build_func_profile_data(self, model_df, profile_types, attri_mapping_name,
+                                 workspace_name, attri_mapping_ref):
+
+        logging.info('Start building functional profile data')
+        model_refs = model_df.index.tolist()
+
+        fc_profile_data = dict()
+
+        fc_profile_refs = list()
+        for profile_type in profile_types:
+            for suffix in ['', '_zscore', '_rownormalization', '_dividepathwaysize']:
+                calculation_type = profile_type + suffix
+
+                pathway_df, pathway_col_mapping_info = self._get_fc_profile_heatmap_data(
+                                                                            calculation_type,
+                                                                            model_refs)
+
+                fc_profile_data.update({calculation_type: {'values': pathway_df.values.tolist(),
+                                                           'compound_names': pathway_df.columns.tolist(),
+                                                           'index': pathway_df.index.tolist(),
+                                                           'pathways': pathway_col_mapping_info}})
+
+                if suffix == '':
+                    fcp_ref = self._create_func_profile(pathway_df,
+                                                        attri_mapping_name + '_{}'.format(profile_type),
+                                                        workspace_name,
+                                                        attri_mapping_ref)
+                    fc_profile_refs.append(fcp_ref)
+
+        return fc_profile_data, fc_profile_refs
 
     def _build_heatmap_data(self, model_df):
 
@@ -422,6 +650,165 @@ class HeatmapUtil:
                                                 'pathways': pathway_info}})
 
         return heatmap_data
+
+    def _create_fc_profile_heatmap(self, output_directory, profile_datas, heatmap_meta):
+
+        logging.info('Start building heatmap tab')
+
+        suffix = str(uuid.uuid4())
+
+        heatmap_data_json_name = 'heatmap_data_{}.json'.format(suffix)
+        heatmap_meta_json_name = 'heatmap_meta_{}.json'.format(suffix)
+        heatmap_data_json = os.path.join(output_directory, heatmap_data_json_name)
+        heatmap_meta_json = os.path.join(output_directory, heatmap_meta_json_name)
+        with open(heatmap_data_json, 'w') as outfile:
+            json.dump(profile_datas, outfile)
+        with open(heatmap_meta_json, 'w') as outfile:
+            json.dump(heatmap_meta, outfile)
+
+        metadata_info = ""
+        metadata_info += """\n<option value="{}">{}</option>\n""".format('Model Name', 'Model Name')
+        metadata_names = list(heatmap_meta.keys())
+        metadata_names.remove('Model Name')
+        for meta_name in metadata_names:
+            metadata_info += """\n<option value="{}">{}</option>\n""".format(meta_name, meta_name)
+
+        data_info = ""
+        for data_name in profile_datas.keys():
+            data_info += """\n<option value="{}">{}</option>\n""".format(data_name, data_name)
+
+        pathway_info = ""
+        for pathway_name in profile_datas.get(list(profile_datas.keys())[0])['pathways'].keys():
+            pathway_info += """\n<option value="{}">{}</option>\n""".format(pathway_name, pathway_name)
+
+        heatmap_html_name = 'heatmap_{}.html'.format(suffix)
+        heatmap_html = os.path.join(output_directory, heatmap_html_name)
+
+        with open(heatmap_html, 'w') as heatmap_html:
+            with open(os.path.join(os.path.dirname(__file__),
+                                   'templates', 'heatmap_template.html'),
+                      'r') as heatmap_template_file:
+                heatmap_template = heatmap_template_file.read()
+                heatmap_template = heatmap_template.replace('<!-- metadata_info -->',
+                                                            metadata_info)
+                heatmap_template = heatmap_template.replace('<!-- data_info -->',
+                                                            data_info)
+                heatmap_template = heatmap_template.replace('<!-- pathway_info -->',
+                                                            pathway_info)
+                heatmap_template = heatmap_template.replace('heatmap_data.json',
+                                                            heatmap_data_json_name)
+                heatmap_template = heatmap_template.replace('heatmap_meta.json',
+                                                            heatmap_meta_json_name)
+                heatmap_html.write(heatmap_template)
+
+        return heatmap_html_name
+
+    def _generate_fc_profile_report(self, fc_profile_data, heatmap_meta, profile_types):
+        logging.info('Start building html report')
+
+        pathway_name_map = {
+            'functional_rxn': 'Functional Reaction',
+            'functional_rxn_zscore': 'Functional Reaction (Z-Score)',
+            'functional_rxn_rownormalization': 'Functional Reaction (Divide Row Maximum Value)',
+            'functional_rxn_dividepathwaysize': 'Functional Reaction (Divide Pathway Size)',
+            'total_functional_coverage': 'Total Functional Coverage',
+            'total_functional_coverage_zscore': 'Total Functional Coverage (Z-Score)',
+            'total_functional_coverage_rownormalization': 'Total Functional Coverage (Divide Row Maximum Value)',
+            'total_functional_coverage_dividepathwaysize': 'Total Functional Coverage (Divide Pathway Size)',
+            'gapfilled_rxn': 'Gapfilled Reaction',
+            'gapfilled_rxn_zscore': 'Gapfilled Reaction (Z-Score)',
+            'gapfilled_rxn_rownormalization': 'Gapfilled Reaction (Divide Row Maximum Value)',
+            'gapfilled_rxn_dividepathwaysize': 'Gapfilled Reaction (Divide Pathway Size)',
+            'nonfunctional_rxn': 'Nonfunctional Reaction',
+            'nonfunctional_rxn_zscore': 'Nonfunctional Reaction (Z-Score)',
+            'nonfunctional_rxn_rownormalization': 'Nonfunctional Reaction (Divide Row Maximum Value)',
+            'nonfunctional_rxn_dividepathwaysize': 'Nonfunctional Reaction (Divide Pathway Size)',
+            'gene_count': 'Gene Count',
+            'gene_count_zscore': 'Gene Count (Z-Score)',
+            'gene_count_rownormalization': 'Gene Count (Divide Row Maximum Value)',
+            'gene_count_dividepathwaysize': 'Gene Count (Divide Pathway Size)'}
+
+        html_report = list()
+
+        output_directory = os.path.join(self.scratch, str(uuid.uuid4()))
+        logging.info('Start building report files in dir: {}'.format(output_directory))
+        self._mkdir_p(output_directory)
+        model_set_file_path = os.path.join(output_directory, 'model_set_functional_profiles.html')
+
+        tab_def_content = ''
+        tab_content = ''
+
+        # build first profile heatmap
+        first_profile_type = profile_types[0]
+        profile_datas = dict()
+        for suffix in ['', '_zscore', '_rownormalization', '_dividepathwaysize']:
+            profile_name = first_profile_type + suffix
+            profile_datas.update({pathway_name_map[profile_name]: fc_profile_data[profile_name]})
+
+            if suffix == '':
+                html_tab_name = pathway_name_map[profile_name]
+
+        heatmap_page = self._create_fc_profile_heatmap(output_directory, profile_datas,
+                                                       heatmap_meta)
+
+        tab_id = html_tab_name.replace(" ", "")
+        tab_def_content += """
+        <div class="tab">
+            <button class="tablinks" onclick="openTab(event, '{}')" id="defaultOpen">{}</button>
+        """.format(tab_id, html_tab_name)
+
+        page_content = ''
+        page_content += '\n<iframe height="900px" width="100%" '
+        page_content += 'src="{}" style="border:none;"></iframe>'.format(heatmap_page)
+
+        tab_content += """\n<div id="{}" class="tabcontent">{}</div>""".format(tab_id,
+                                                                               page_content)
+
+        # build reset profiles heatmap
+        for profile_type in profile_types[1:]:
+            profile_datas = dict()
+            for suffix in ['', '_zscore', '_rownormalization', '_dividepathwaysize']:
+                profile_name = profile_type + suffix
+                profile_datas.update({pathway_name_map[profile_name]: fc_profile_data[profile_name]})
+
+                if suffix == '':
+                    html_tab_name = pathway_name_map[profile_name]
+
+            heatmap_page = self._create_fc_profile_heatmap(output_directory, profile_datas,
+                                                           heatmap_meta)
+
+            tab_id = html_tab_name.replace(" ", "")
+            tab_def_content += """
+                <button class="tablinks" onclick="openTab(event, '{}')">{}</button>
+            """.format(tab_id, html_tab_name)
+
+            page_content = ''
+            page_content += '\n<iframe height="900px" width="100%" '
+            page_content += 'src="{}" style="border:none;"></iframe>'.format(heatmap_page)
+
+            tab_content += """\n<div id="{}" class="tabcontent">{}</div>""".format(tab_id,
+                                                                                   page_content)
+
+        tab_def_content += """</div>"""
+        visualization_content = tab_def_content + tab_content
+        with open(model_set_file_path, 'w') as result_file:
+            with open(os.path.join(os.path.dirname(__file__), 'templates', 'model_set_template.html'),
+                      'r') as report_template_file:
+                report_template = report_template_file.read()
+                report_template = report_template.replace('<p>Visualization_Content</p>',
+                                                          visualization_content)
+                result_file.write(report_template)
+
+        report_shock_id = self.dfu.file_to_shock({'file_path': output_directory,
+                                                  'pack': 'zip'})['shock_id']
+
+        html_report.append({'shock_id': report_shock_id,
+                            'name': os.path.basename(model_set_file_path),
+                            'label': os.path.basename(model_set_file_path),
+                            'description': 'HTML summary report for Model Set Functional Profile'
+                            })
+
+        return html_report
 
     def _generate_heatmap_report(self, overall_stats, reaction_stats, heatmap_data, heatmap_meta):
 
@@ -537,12 +924,63 @@ class HeatmapUtil:
         self.scratch = config['scratch']
         self.token = config['KB_AUTH_TOKEN']
         self.dfu = DataFileUtil(self.callback_url)
+        self.ws_large_data = WsLargeDataIO(self.callback_url, service_ver='beta')
         self.fba_tools = fba_tools(self.callback_url)
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
         self.obj_cache = dict()
 
         self.functional_rxn_pathways = list()
+
+    def model_set_to_functional_profiles(self, params):
+        workspace_name = params.get('workspace_name')
+        attri_mapping_ref = params.get('attri_mapping_ref')
+        profile_types = params.get('profile_types', {})
+
+        profile_types = [item[0] for item in profile_types.items() if item[1]]
+        if not profile_types:
+            raise ValueError('Please choose at least one profile type to be created')
+
+        attri_mapping_obj = self.dfu.get_objects(
+                                    {'object_refs': [attri_mapping_ref]})['data'][0]
+        attri_mapping_data = attri_mapping_obj['data']
+        attri_mapping_name = attri_mapping_obj['info'][1]
+        attributes = pd.DataFrame(attri_mapping_data['attributes'])
+        instances = pd.DataFrame(attri_mapping_data['instances'])
+        model_df = attributes.join(instances)
+        model_name_idx = model_df['attribute'].tolist().index('model_name')
+        model_df.drop(columns=['source'], index=[model_name_idx], inplace=True)
+        model_df = model_df.T
+        model_df.columns = model_df.loc['attribute', :]
+        model_df.drop(index=['attribute'], inplace=True)
+
+        self._check_model_obj_version(model_df, workspace_name)
+
+        fc_profile_data, fc_profile_refs = self._build_func_profile_data(model_df, profile_types,
+                                                                         attri_mapping_name,
+                                                                         workspace_name,
+                                                                         attri_mapping_ref)
+        heatmap_meta = self._build_model_set_meta(model_df)
+
+        html_files = self._generate_fc_profile_report(fc_profile_data, heatmap_meta, profile_types)
+
+        objects_created = [{'ref': ref,
+                            'description': 'Functional Porfile'} for ref in fc_profile_refs]
+        report_params = {'message': '',
+                         'workspace_name': workspace_name,
+                         'objects_created': objects_created,
+                         'html_links': html_files,
+                         'direct_html_link_index': 0,
+                         'html_window_height': 666,
+                         'report_object_name': 'model_set_to_func_profile_' + str(uuid.uuid4())}
+
+        kbase_report_client = KBaseReport(self.callback_url, token=self.token)
+        output = kbase_report_client.create_extended_report(report_params)
+
+        report_output = {'report_name': output['name'], 'report_ref': output['ref'],
+                         'functional_profile_refs': fc_profile_refs}
+
+        return report_output
 
     def run_model_heatmap_analysis(self, params):
         staging_file_path = params.get('staging_file_path')
@@ -571,16 +1009,6 @@ class HeatmapUtil:
             raise ValueError("Please provide valide staging file or attribute mapping")
 
         self._check_model_obj_version(model_df, workspace_name)
-
-        try:
-            model_df.drop(columns=['model_name'], inplace=True)
-        except KeyError:
-            logging.info('model_name does not exist in excel')
-
-        try:
-            model_df.drop(columns=['model_index'], inplace=True)
-        except KeyError:
-            logging.info('model_index does not exist in excel')
 
         logging.info('start building stats on {}'.format(model_df.index.tolist()))
 

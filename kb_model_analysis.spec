@@ -24,6 +24,20 @@ module kb_model_analysis {
 
     funcdef model_heatmap_analysis(HeatmapAnalysisParams params) returns (ReportResults output) authentication required;
 
+    typedef structure {
+        string report_name;
+        string report_ref;
+        list<obj_ref> functional_profile_refs;
+    } MS2FPResults;
+
+    typedef structure {
+        string workspace_name;
+        string attri_mapping_ref;
+        mapping<string, boolean> profile_types;
+    } MS2FPParams;
+
+    funcdef model_set_to_functional_profiles(MS2FPParams params) returns (MS2FPResults output) authentication required;
+
     /* workspace_scope: one of ['all_workspace', 'private_workspace', 'current_workspace'], default 'current_workspace'
        object_types: default ['KBaseFBA.FBAModel']
     */

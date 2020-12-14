@@ -1,0 +1,131 @@
+{
+    "ver": "0.0.1",
+    "authors": [
+        "tgu2"
+    ],
+    "contact": "",
+    "categories": ["active", "metabolic_modeling"],
+    "widgets": {
+        "input": "kbaseNarrativeMethodInput",
+        "output" : "no-display"
+    },
+    "parameters": [
+        {
+          "id" : "attri_mapping_ref",
+          "optional" : false,
+          "advanced" : false,
+          "allow_multiple" : false,
+          "default_values" : [ "" ],
+          "field_type" : "text",
+          "text_options" : {
+            "valid_ws_types" : ["KBaseExperiments.FBAModelSet"]
+          }
+        },
+        {
+          "id": "functional_rxn",
+          "optional":false,
+          "advanced":false,
+          "allow_multiple":false,
+          "default_values":["1"],
+          "field_type" : "checkbox",
+          "checkbox_options":{
+            "checked_value": 1,
+            "unchecked_value": 0
+          }
+        },
+        {
+          "id": "nonfunctional_rxn",
+          "optional":false,
+          "advanced":false,
+          "allow_multiple":false,
+          "default_values":["0"],
+          "field_type" : "checkbox",
+          "checkbox_options":{
+            "checked_value": 1,
+            "unchecked_value": 0
+          }
+        },
+        {
+          "id": "gapfilled_rxn",
+          "optional":false,
+          "advanced":false,
+          "allow_multiple":false,
+          "default_values":["0"],
+          "field_type" : "checkbox",
+          "checkbox_options":{
+            "checked_value": 1,
+            "unchecked_value": 0
+          }
+        },
+        {
+          "id": "total_functional_coverage",
+          "optional":false,
+          "advanced":false,
+          "allow_multiple":false,
+          "default_values":["0"],
+          "field_type" : "checkbox",
+          "checkbox_options":{
+            "checked_value": 1,
+            "unchecked_value": 0
+          }
+        },
+        {
+          "id": "gene_count",
+          "optional":false,
+          "advanced":false,
+          "allow_multiple":false,
+          "default_values":["0"],
+          "field_type" : "checkbox",
+          "checkbox_options":{
+            "checked_value": 1,
+            "unchecked_value": 0
+          }
+        }
+    ],
+    "parameter-groups": [
+        {
+          "id": "profile_types",
+          "parameters": [
+            "functional_rxn",
+            "nonfunctional_rxn",
+            "gapfilled_rxn",
+            "total_functional_coverage",
+            "gene_count"
+          ],
+          "optional": false,
+          "allow_multiple": false,
+          "with_border": false,
+          "advanced" : false
+        }
+    ],
+    "behavior": {
+        "service-mapping": {
+            "url": "",
+            "name": "kb_model_analysis",
+            "method": "model_set_to_functional_profiles",
+            "input_mapping": [
+                {
+                    "narrative_system_variable": "workspace",
+                    "target_property": "workspace_name"
+                },{
+                    "input_parameter": "attri_mapping_ref",
+                    "target_property": "attri_mapping_ref",
+                    "target_type_transform": "resolved-ref"
+                },{
+                    "input_parameter": "profile_types",
+                    "target_property": "profile_types"
+                }
+            ],
+            "output_mapping": [
+                {
+                    "service_method_output_path": [0,"report_name"],
+                    "target_property": "report_name"
+                },{
+                    "service_method_output_path": [0,"report_ref"],
+                    "target_property": "report_ref"
+                }
+            ]
+        }
+    },
+    "job_id_output_field": "docker"
+}

@@ -13,6 +13,7 @@ from kb_model_analysis.authclient import KBaseAuth as _KBaseAuth
 
 from installed_clients.WorkspaceClient import Workspace
 from installed_clients.DataFileUtilClient import DataFileUtil
+from installed_clients.FakeObjectsForTestsClient import FakeObjectsForTests
 
 
 class kb_model_analysisTest(unittest.TestCase):
@@ -67,6 +68,56 @@ class kb_model_analysisTest(unittest.TestCase):
 
         model_ref = params['object_refs'][0]
 
+        if model_ref.count('/') == 2 and model_ref.endswith('1'):
+
+            # return fake ModelSet object
+            attri_mapping_data = {
+                "attributes": [
+                    {
+                        "attribute": "model_name",
+                        "source": "upload"
+                    },
+                    {
+                        "attribute": "metadata_3",
+                        "source": "upload"
+                    },
+                    {
+                        "attribute": "metadata_2",
+                        "source": "upload"
+                    },
+                    {
+                        "attribute": "metadata_1",
+                        "source": "upload"
+                    }
+                ],
+                "instances": {
+                    '1/1/2': [
+                        "Escherichia_coli.mdl.gapfilled-1",
+                        "foo_1",
+                        "foo_2",
+                        "foo_3"
+                    ],
+                    '1/2/2': [
+                        "Escherichia_coli.mdl.gapfilled-0",
+                        "foo_1",
+                        "bar_2",
+                        ""
+                    ],
+                    '1/3/2': [
+                        "Escherichia_coli.mdl.gapfilled",
+                        "bar_1",
+                        "",
+                        "bar_3"
+                    ]
+                },
+                "ontology_mapping_method": "User Curation - ISA format"
+            }
+
+            data = {'data': [{'data': attri_mapping_data,
+                              'info': [1, 'FakeFBAModelSet', 'KBaseExperiments.FBAModelSet‑1.0']}]}
+            return data
+
+        # build fake FBAModel object
         random.seed(None)
 
         fake_model_data = {}
@@ -164,3 +215,25 @@ class kb_model_analysisTest(unittest.TestCase):
 
         self.assertIn('report_ref', returnVal)
         self.assertIn('report_name', returnVal)
+
+    @patch.object(DataFileUtil, "get_objects", side_effect=mock_get_objects)
+    def test_model_set_to_functional_profiles_app(self, get_objects):
+        profile_types = {"functional_rxn": 1,
+                         "nonfunctional_rxn": 0,
+                         "gapfilled_rxn": 1,
+                         "total_functional_coverage": 0,
+                         "gene_count": 1}
+
+        foft = FakeObjectsForTests(self.callback_url)
+        obj_name = 'test_obj.1'
+        info = foft.create_any_objects({'ws_name': self.wsName, 'obj_names': [obj_name]})[0]
+        attri_mapping_ref = "%s/%s/%s" % (info[6], info[0], info[4])
+
+        params = {'workspace_name': self.wsName,
+                  'profile_types': profile_types,
+                  'attri_mapping_ref': attri_mapping_ref}
+        returnVal = self.serviceImpl.model_set_to_functional_profiles(self.ctx, params)[0]
+
+        self.assertIn('report_ref', returnVal)
+        self.assertIn('report_name', returnVal)
+        self.assertIn('functional_profile_refs', returnVal)

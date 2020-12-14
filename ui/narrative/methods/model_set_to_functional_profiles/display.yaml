@@ -1,0 +1,81 @@
+#
+# define display information
+#
+name: Create Functional Profiles from Models
+
+tooltip: |
+    Retrieve statistical data from models, create functional profiles and visualize the comparison via a heatmap
+
+screenshots: []
+
+icon: fba-teal.png
+
+#
+# define a set of similar apps that might be useful to the user
+#
+suggestions:
+    apps:
+        related:
+            []
+        next:
+            []
+
+#
+# Configure the display and description of parameters
+#
+parameters :
+    attri_mapping_ref :
+        ui-name : |
+            Model Set Object
+        short-hint : |
+            Model Set Object
+        long-hint  : |
+            Model Set Object
+
+    functional_rxn :
+        ui-name : |
+            Functional Reaction
+        short-hint : |
+            Functional Reaction
+        long-hint  : |
+            Functional Reaction
+
+    nonfunctional_rxn :
+        ui-name : |
+            Nonfunctional Reaction
+        short-hint : |
+            Nonfunctional Reaction
+        long-hint  : |
+            Nonfunctional Reaction
+
+    gapfilled_rxn :
+        ui-name : |
+            Gapfilled Reaction
+        short-hint : |
+            Gapfilled Reaction
+        long-hint  : |
+            Gapfilled Reaction
+
+    total_functional_coverage :
+        ui-name : |
+            Total Functional Coverage
+        short-hint : |
+            Total Functional Coverage
+        long-hint  : |
+            Total Functional Coverage
+
+    gene_count :
+        ui-name : |
+            Gene Count
+        short-hint : |
+            Gene Count
+        long-hint  : |
+            Gene Count
+
+parameter-groups :
+    profile_types:
+        ui-name : Profile Type To Be Created
+        short-hint :  Select profile type to be created
+
+description : |
+    <p>Retrieve statistical data from models, create functional profiles and visualize the comparison via a heatmap</p>

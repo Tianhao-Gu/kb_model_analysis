@@ -231,6 +231,8 @@ class HeatmapUtil:
                     nor_values.append(line_values)
 
             nor_df = pd.DataFrame(index=nor_df.index, columns=nor_df.columns, data=nor_values)
+        elif normalization_type == 'dividepathwaysize':
+            pass
         else:
             logging.warning('Unexpected normalization type: {}'.format(normalization_type))
 
@@ -444,7 +446,7 @@ class HeatmapUtil:
             model_name = model_obj['info'][1] + ' [{}]'.format(i)
             model_name_mapping.update({model_ref: model_name})
 
-        heatmap_meta.update({'model_name': model_name_mapping})
+        heatmap_meta.update({'model name': model_name_mapping})
 
         return heatmap_meta
 
@@ -489,28 +491,6 @@ class HeatmapUtil:
 
         fc_profile_data = dict()
 
-        pathway_name_map = {
-            'functional_rxn': 'Functional Reaction',
-            'functional_rxn_zscore': 'Functional Reaction (Z-Score)',
-            'functional_rxn_rownormalization': 'Functional Reaction (Divide Row Maximum Value)',
-            'functional_rxn_dividepathwaysize': 'Functional Reaction (Divide Pathway Size)',
-            'total_functional_coverage': 'Total Functional Coverage',
-            'total_functional_coverage_zscore': 'Total Functional Coverage (Z-Score)',
-            'total_functional_coverage_rownormalization': 'Total Functional Coverage (Divide Row Maximum Value)',
-            'total_functional_coverage_dividepathwaysize': 'Total Functional Coverage (Divide Pathway Size)',
-            'gapfilled_rxn': 'Gapfilled Reaction',
-            'gapfilled_rxn_zscore': 'Gapfilled Reaction (Z-Score)',
-            'gapfilled_rxn_rownormalization': 'Gapfilled Reaction (Divide Row Maximum Value)',
-            'gapfilled_rxn_dividepathwaysize': 'Gapfilled Reaction (Divide Pathway Size)',
-            'nonfunctional_rxn': 'Nonfunctional Reaction',
-            'nonfunctional_rxn_zscore': 'Nonfunctional Reaction (Z-Score)',
-            'nonfunctional_rxn_rownormalization': 'Nonfunctional Reaction (Divide Row Maximum Value)',
-            'nonfunctional_rxn_dividepathwaysize': 'Nonfunctional Reaction (Divide Pathway Size)',
-            'gene_count': 'Gene Count',
-            'gene_count_zscore': 'Gene Count (Z-Score)',
-            'gene_count_rownormalization': 'Gene Count (Divide Row Maximum Value)',
-            'gene_count_dividepathwaysize': 'Gene Count (Divide Pathway Size)'}
-
         fc_profile_refs = list()
         for profile_type in profile_types:
             for suffix in ['', '_zscore', '_rownormalization', '_dividepathwaysize']:
@@ -521,7 +501,12 @@ class HeatmapUtil:
                                                                             model_refs)
 
                 # pathway_name = pathway_name_map.get(calculation_type, calculation_type)
+                # fc_profile_data.update({calculation_type: {'pathway_df': pathway_df,
+                #                                            'pathway_col_mapping_info': pathway_col_mapping_info}})
+
                 fc_profile_data.update({calculation_type: {'values': pathway_df.values.tolist(),
+                                                           'compound_names': pathway_df.columns.tolist(),
+                                                           'index': pathway_df.index.tolist(),
                                                            'pathways': pathway_col_mapping_info}})
 
                 if suffix == '':
@@ -587,6 +572,57 @@ class HeatmapUtil:
                                                 'pathways': pathway_info}})
 
         return heatmap_data
+
+    def _generate_fc_profile_report(self, fc_profile_data, heatmap_meta, profile_types):
+        logging.info('Start building html report')
+
+        pathway_name_map = {
+            'functional_rxn': 'Functional Reaction',
+            'functional_rxn_zscore': 'Functional Reaction (Z-Score)',
+            'functional_rxn_rownormalization': 'Functional Reaction (Divide Row Maximum Value)',
+            'functional_rxn_dividepathwaysize': 'Functional Reaction (Divide Pathway Size)',
+            'total_functional_coverage': 'Total Functional Coverage',
+            'total_functional_coverage_zscore': 'Total Functional Coverage (Z-Score)',
+            'total_functional_coverage_rownormalization': 'Total Functional Coverage (Divide Row Maximum Value)',
+            'total_functional_coverage_dividepathwaysize': 'Total Functional Coverage (Divide Pathway Size)',
+            'gapfilled_rxn': 'Gapfilled Reaction',
+            'gapfilled_rxn_zscore': 'Gapfilled Reaction (Z-Score)',
+            'gapfilled_rxn_rownormalization': 'Gapfilled Reaction (Divide Row Maximum Value)',
+            'gapfilled_rxn_dividepathwaysize': 'Gapfilled Reaction (Divide Pathway Size)',
+            'nonfunctional_rxn': 'Nonfunctional Reaction',
+            'nonfunctional_rxn_zscore': 'Nonfunctional Reaction (Z-Score)',
+            'nonfunctional_rxn_rownormalization': 'Nonfunctional Reaction (Divide Row Maximum Value)',
+            'nonfunctional_rxn_dividepathwaysize': 'Nonfunctional Reaction (Divide Pathway Size)',
+            'gene_count': 'Gene Count',
+            'gene_count_zscore': 'Gene Count (Z-Score)',
+            'gene_count_rownormalization': 'Gene Count (Divide Row Maximum Value)',
+            'gene_count_dividepathwaysize': 'Gene Count (Divide Pathway Size)'}
+
+        html_report = list()
+
+        output_directory = os.path.join(self.scratch, str(uuid.uuid4()))
+        logging.info('Start building report files in dir: {}'.format(output_directory))
+        self._mkdir_p(output_directory)
+        model_set_file_path = os.path.join(output_directory, 'model_set_functional_profiles.html')
+
+        # build model_comp html (home page)
+        shutil.copyfile(os.path.join(os.path.dirname(__file__),
+                                     'templates', 'model_set_template.html'),
+                        model_set_file_path)
+
+        # build first profile heatmap
+        first_profile_type = profile_types[0]
+        profile_datas = dict()
+        for suffix in ['', '_zscore', '_rownormalization', '_dividepathwaysize']:
+            profile_name = first_profile_type + suffix
+            profile_datas.update({pathway_name_map[profile_name]: fc_profile_data[profile_name]})
+
+        # build reset profiles heatmap
+        for profile_type in profile_types[1:]:
+            profile_datas = dict()
+            for suffix in ['', '_zscore', '_rownormalization', '_dividepathwaysize']:
+                profile_name = first_profile_type + suffix
+                profile_datas.update({profile_name: fc_profile_data[profile_name]})
 
     def _generate_heatmap_report(self, overall_stats, reaction_stats, heatmap_data, heatmap_meta):
 
@@ -737,20 +773,23 @@ class HeatmapUtil:
                                                                          attri_mapping_name)
         heatmap_meta = self._build_model_set_meta(model_df)
 
-        html_files = self._generate_fc_profile_report(fc_profile_data, fc_profile_refs,
-                                                      heatmap_meta)
+        html_files = self._generate_fc_profile_report(fc_profile_data, heatmap_meta, profile_types)
 
+        objects_created = [{'ref': ref,
+                            'description': 'Functional Porfile'} for ref in fc_profile_refs]
         report_params = {'message': '',
                          'workspace_name': workspace_name,
+                         'objects_created': objects_created,
                          'html_links': html_files,
                          'direct_html_link_index': 0,
                          'html_window_height': 666,
-                         'report_object_name': 'model_comparison_' + str(uuid.uuid4())}
+                         'report_object_name': 'model_set_to_func_profile_' + str(uuid.uuid4())}
 
         kbase_report_client = KBaseReport(self.callback_url, token=self.token)
         output = kbase_report_client.create_extended_report(report_params)
 
-        report_output = {'report_name': output['name'], 'report_ref': output['ref']}
+        report_output = {'report_name': output['name'], 'report_ref': output['ref'],
+                         'functional_profile_refs': fc_profile_refs}
 
         return report_output
 

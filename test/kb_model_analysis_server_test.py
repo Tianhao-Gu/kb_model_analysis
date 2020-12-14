@@ -183,34 +183,34 @@ class kb_model_analysisTest(unittest.TestCase):
         return data
 
     # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
-    # def test_bad_params(self):
-    #     with self.assertRaises(ValueError) as context:
-    #         self.serviceImpl.model_heatmap_analysis(self.ctx, {'workspace_name': self.wsName})
-    #         self.assertIn("Required keys", str(context.exception.args))
+    def test_bad_params(self):
+        with self.assertRaises(ValueError) as context:
+            self.serviceImpl.model_heatmap_analysis(self.ctx, {'workspace_name': self.wsName})
+            self.assertIn("Required keys", str(context.exception.args))
 
-    #     with self.assertRaises(ValueError) as context:
-    #         self.serviceImpl.create_heatmap_analysis_template(self.ctx, {})
-    #         self.assertIn("Required keys", str(context.exception.args))
+        with self.assertRaises(ValueError) as context:
+            self.serviceImpl.create_heatmap_analysis_template(self.ctx, {})
+            self.assertIn("Required keys", str(context.exception.args))
 
-    # @patch.object(DataFileUtil, "download_staging_file", side_effect=mock_download_staging_file)
-    # @patch.object(DataFileUtil, "get_objects", side_effect=mock_get_objects)
-    # def test_model_heatmap_analysis_app(self, download_staging_file, get_objects):
-    #     params = {'workspace_name': self.wsName,
-    #               'staging_file_path': os.path.join('data', 'model_compare_temp.xlsx')}
-    #     returnVal = self.serviceImpl.model_heatmap_analysis(self.ctx, params)[0]
+    @patch.object(DataFileUtil, "download_staging_file", side_effect=mock_download_staging_file)
+    @patch.object(DataFileUtil, "get_objects", side_effect=mock_get_objects)
+    def test_model_heatmap_analysis_app(self, download_staging_file, get_objects):
+        params = {'workspace_name': self.wsName,
+                  'staging_file_path': os.path.join('data', 'model_compare_temp.xlsx')}
+        returnVal = self.serviceImpl.model_heatmap_analysis(self.ctx, params)[0]
 
-    #     self.assertIn('report_ref', returnVal)
-    #     self.assertIn('report_name', returnVal)
+        self.assertIn('report_ref', returnVal)
+        self.assertIn('report_name', returnVal)
 
-    # def test_create_heatmap_analysis_template(self):
-    #     params = {'workspace_id': self.wsId,
-    #               'object_types': ['KBaseFile.SingleEndLibrary', 'KBaseFile.PairedEndLibrary'],
-    #               'workspace_scope': 'all_workspace',
-    #               }
-    #     returnVal = self.serviceImpl.create_heatmap_analysis_template(self.ctx, params)[0]
+    def test_create_heatmap_analysis_template(self):
+        params = {'workspace_id': self.wsId,
+                  'object_types': ['KBaseFile.SingleEndLibrary', 'KBaseFile.PairedEndLibrary'],
+                  'workspace_scope': 'all_workspace',
+                  }
+        returnVal = self.serviceImpl.create_heatmap_analysis_template(self.ctx, params)[0]
 
-    #     self.assertIn('report_ref', returnVal)
-    #     self.assertIn('report_name', returnVal)
+        self.assertIn('report_ref', returnVal)
+        self.assertIn('report_name', returnVal)
 
     @patch.object(DataFileUtil, "get_objects", side_effect=mock_get_objects)
     def test_model_set_to_functional_profiles_app(self, get_objects):

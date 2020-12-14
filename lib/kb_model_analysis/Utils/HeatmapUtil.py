@@ -573,6 +573,58 @@ class HeatmapUtil:
 
         return heatmap_data
 
+    def _create_fc_profile_heatmap(self, output_directory, profile_datas, heatmap_meta):
+
+        logging.info('Start building heatmap tab')
+
+        suffix = str(uuid.uuid4())
+
+        heatmap_data_json_name = 'heatmap_data_{}.json'.format(suffix)
+        heatmap_meta_json_name = 'heatmap_meta_{}.json'.format(suffix)
+        heatmap_data_json = os.path.join(output_directory, heatmap_data_json_name)
+        heatmap_meta_json = os.path.join(output_directory, heatmap_meta_json_name)
+        with open(heatmap_data_json, 'w') as outfile:
+            json.dump(profile_datas, outfile)
+        with open(heatmap_meta_json, 'w') as outfile:
+            json.dump(heatmap_meta, outfile)
+
+        metadata_info = ""
+        metadata_info += """\n<option value="{}">{}</option>\n""".format('Model Name', 'Model Name')
+        metadata_names = list(heatmap_meta.keys())
+        metadata_names.remove('Model Name')
+        for meta_name in metadata_names:
+            metadata_info += """\n<option value="{}">{}</option>\n""".format(meta_name, meta_name)
+
+        data_info = ""
+        for data_name in profile_datas.keys():
+            data_info += """\n<option value="{}">{}</option>\n""".format(data_name, data_name)
+
+        pathway_info = ""
+        for pathway_name in profile_datas.get(list(profile_datas.keys())[0])['pathways'].keys():
+            pathway_info += """\n<option value="{}">{}</option>\n""".format(pathway_name, pathway_name)
+
+        heatmap_html_name = 'heatmap_{}.html'.format(suffix)
+        heatmap_html = os.path.join(output_directory, heatmap_html_name)
+
+        with open(heatmap_html, 'w') as heatmap_html:
+            with open(os.path.join(os.path.dirname(__file__),
+                                   'templates', 'heatmap_template.html'),
+                      'r') as heatmap_template_file:
+                heatmap_template = heatmap_template_file.read()
+                heatmap_template = heatmap_template.replace('<!-- metadata_info -->',
+                                                            metadata_info)
+                heatmap_template = heatmap_template.replace('<!-- data_info -->',
+                                                            data_info)
+                heatmap_template = heatmap_template.replace('<!-- pathway_info -->',
+                                                            pathway_info)
+                heatmap_template = heatmap_template.replace('heatmap_data.json',
+                                                            heatmap_data_json)
+                heatmap_template = heatmap_template.replace('heatmap_meta.json',
+                                                            heatmap_meta_json)
+                heatmap_html.write(heatmap_template)
+
+        return heatmap_html_name
+
     def _generate_fc_profile_report(self, fc_profile_data, heatmap_meta, profile_types):
         logging.info('Start building html report')
 
@@ -605,10 +657,8 @@ class HeatmapUtil:
         self._mkdir_p(output_directory)
         model_set_file_path = os.path.join(output_directory, 'model_set_functional_profiles.html')
 
-        # build model_comp html (home page)
-        shutil.copyfile(os.path.join(os.path.dirname(__file__),
-                                     'templates', 'model_set_template.html'),
-                        model_set_file_path)
+        tab_def_content = ''
+        tab_content = ''
 
         # build first profile heatmap
         first_profile_type = profile_types[0]
@@ -617,12 +667,71 @@ class HeatmapUtil:
             profile_name = first_profile_type + suffix
             profile_datas.update({pathway_name_map[profile_name]: fc_profile_data[profile_name]})
 
+            if suffix == '':
+                html_tab_name = pathway_name_map[profile_name]
+
+        heatmap_page = self._create_fc_profile_heatmap(output_directory, profile_datas,
+                                                       heatmap_meta)
+
+        tab_id = html_tab_name.replace(" ", "")
+        tab_def_content += """
+        <div class="tab">
+            <button class="tablinks" onclick="openTab(event, '{}')" id="defaultOpen">{}</button>
+        """.format(tab_id, html_tab_name)
+
+        page_content = ''
+        page_content += '\n<iframe height="900px" width="100%" '
+        page_content += 'src="{}" style="border:none;"></iframe>'.format(heatmap_page)
+
+        tab_content += """\n<div id="{}" class="tabcontent">{}</div>""".format(tab_id,
+                                                                               page_content)
+
         # build reset profiles heatmap
         for profile_type in profile_types[1:]:
             profile_datas = dict()
             for suffix in ['', '_zscore', '_rownormalization', '_dividepathwaysize']:
                 profile_name = first_profile_type + suffix
-                profile_datas.update({profile_name: fc_profile_data[profile_name]})
+                profile_datas.update({pathway_name_map[profile_name]: fc_profile_data[profile_name]})
+
+                if suffix == '':
+                    html_tab_name = pathway_name_map[profile_name]
+
+            heatmap_page = self._create_fc_profile_heatmap(output_directory, profile_datas,
+                                                           heatmap_meta)
+
+            tab_id = html_tab_name.replace(" ", "")
+            tab_def_content += """
+            <div class="tab">
+                <button class="tablinks" onclick="openTab(event, '{}')">{}</button>
+            """.format(tab_id, html_tab_name)
+
+            page_content = ''
+            page_content += '\n<iframe height="900px" width="100%" '
+            page_content += 'src="{}" style="border:none;"></iframe>'.format(heatmap_page)
+
+            tab_content += """\n<div id="{}" class="tabcontent">{}</div>""".format(tab_id,
+                                                                                   page_content)
+
+        tab_def_content += """</div>"""
+        visualization_content = tab_def_content + tab_content
+        with open(model_set_file_path, 'w') as result_file:
+            with open(os.path.join(os.path.dirname(__file__), 'templates', 'model_set_template.html'),
+                      'r') as report_template_file:
+                report_template = report_template_file.read()
+                report_template = report_template.replace('<p>Visualization_Content</p>',
+                                                          visualization_content)
+                result_file.write(report_template)
+
+        report_shock_id = self.dfu.file_to_shock({'file_path': output_directory,
+                                                  'pack': 'zip'})['shock_id']
+
+        html_report.append({'shock_id': report_shock_id,
+                            'name': os.path.basename(model_set_file_path),
+                            'label': os.path.basename(model_set_file_path),
+                            'description': 'HTML summary report for Model Set Functional Profile'
+                            })
+
+        return html_report
 
     def _generate_heatmap_report(self, overall_stats, reaction_stats, heatmap_data, heatmap_meta):
 

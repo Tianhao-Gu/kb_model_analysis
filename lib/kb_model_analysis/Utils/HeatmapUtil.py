@@ -318,8 +318,8 @@ class HeatmapUtil:
 
         pathway_df = pathway_df.reindex(index=idx_ordered_label, columns=col_ordered_label)
 
-        pathway_col_mapping_info = {'pathway name': [pathway_id_name_map[key] for key in pathway_df.index],
-                                    'pathway class': [pathway_id_class2_map[key] for key in pathway_df.index]}
+        pathway_col_mapping_info = {'Pathway Name': [pathway_id_name_map[key] for key in pathway_df.index],
+                                    'Pathway Class': [pathway_id_class2_map[key] for key in pathway_df.index]}
 
         return pathway_df, pathway_col_mapping_info
 
@@ -446,7 +446,7 @@ class HeatmapUtil:
             model_name = model_obj['info'][1] + ' [{}]'.format(i)
             model_name_mapping.update({model_ref: model_name})
 
-        heatmap_meta.update({'model name': model_name_mapping})
+        heatmap_meta.update({'Model Name': model_name_mapping})
 
         return heatmap_meta
 

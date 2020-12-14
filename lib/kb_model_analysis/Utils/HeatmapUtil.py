@@ -618,9 +618,9 @@ class HeatmapUtil:
                 heatmap_template = heatmap_template.replace('<!-- pathway_info -->',
                                                             pathway_info)
                 heatmap_template = heatmap_template.replace('heatmap_data.json',
-                                                            heatmap_data_json)
+                                                            heatmap_data_json_name)
                 heatmap_template = heatmap_template.replace('heatmap_meta.json',
-                                                            heatmap_meta_json)
+                                                            heatmap_meta_json_name)
                 heatmap_html.write(heatmap_template)
 
         return heatmap_html_name
@@ -690,7 +690,7 @@ class HeatmapUtil:
         for profile_type in profile_types[1:]:
             profile_datas = dict()
             for suffix in ['', '_zscore', '_rownormalization', '_dividepathwaysize']:
-                profile_name = first_profile_type + suffix
+                profile_name = profile_type + suffix
                 profile_datas.update({pathway_name_map[profile_name]: fc_profile_data[profile_name]})
 
                 if suffix == '':
@@ -701,7 +701,6 @@ class HeatmapUtil:
 
             tab_id = html_tab_name.replace(" ", "")
             tab_def_content += """
-            <div class="tab">
                 <button class="tablinks" onclick="openTab(event, '{}')">{}</button>
             """.format(tab_id, html_tab_name)
 
@@ -884,6 +883,7 @@ class HeatmapUtil:
 
         html_files = self._generate_fc_profile_report(fc_profile_data, heatmap_meta, profile_types)
 
+        fc_profile_refs = ['28327/195/8', '28327/453/1']
         objects_created = [{'ref': ref,
                             'description': 'Functional Porfile'} for ref in fc_profile_refs]
         report_params = {'message': '',

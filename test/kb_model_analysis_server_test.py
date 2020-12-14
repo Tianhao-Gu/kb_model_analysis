@@ -67,6 +67,53 @@ class kb_model_analysisTest(unittest.TestCase):
 
         model_ref = params['object_refs'][0]
 
+        if model_ref == 'FBAModelSet':
+            attri_mapping_data = {
+                "attributes": [
+                    {
+                        "attribute": "model_name",
+                        "source": "upload"
+                    },
+                    {
+                        "attribute": "metadata_3",
+                        "source": "upload"
+                    },
+                    {
+                        "attribute": "metadata_2",
+                        "source": "upload"
+                    },
+                    {
+                        "attribute": "metadata_1",
+                        "source": "upload"
+                    }
+                ],
+                "instances": {
+                    "1/1/1": [
+                        "Escherichia_coli.mdl.gapfilled-1",
+                        "foo_1",
+                        "foo_2",
+                        "foo_3"
+                    ],
+                    "1/2/2": [
+                        "Escherichia_coli.mdl.gapfilled-0",
+                        "foo_1",
+                        "bar_2",
+                        ""
+                    ],
+                    "1/3/3": [
+                        "Escherichia_coli.mdl.gapfilled",
+                        "bar_1",
+                        "",
+                        "bar_3"
+                    ]
+                },
+                "ontology_mapping_method": "User Curation - ISA format"
+            }
+
+            data = {'data': [{'data': attri_mapping_data,
+                              'info': [1, 'FakeFBAModelSet', 'KBaseExperiments.FBAModelSet‑1.0']}]}
+            return data
+
         random.seed(None)
 
         fake_model_data = {}
@@ -136,31 +183,49 @@ class kb_model_analysisTest(unittest.TestCase):
         return data
 
     # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
-    def test_bad_params(self):
-        with self.assertRaises(ValueError) as context:
-            self.serviceImpl.model_heatmap_analysis(self.ctx, {'workspace_name': self.wsName})
-            self.assertIn("Required keys", str(context.exception.args))
+    # def test_bad_params(self):
+    #     with self.assertRaises(ValueError) as context:
+    #         self.serviceImpl.model_heatmap_analysis(self.ctx, {'workspace_name': self.wsName})
+    #         self.assertIn("Required keys", str(context.exception.args))
 
-        with self.assertRaises(ValueError) as context:
-            self.serviceImpl.create_heatmap_analysis_template(self.ctx, {})
-            self.assertIn("Required keys", str(context.exception.args))
+    #     with self.assertRaises(ValueError) as context:
+    #         self.serviceImpl.create_heatmap_analysis_template(self.ctx, {})
+    #         self.assertIn("Required keys", str(context.exception.args))
 
-    @patch.object(DataFileUtil, "download_staging_file", side_effect=mock_download_staging_file)
+    # @patch.object(DataFileUtil, "download_staging_file", side_effect=mock_download_staging_file)
+    # @patch.object(DataFileUtil, "get_objects", side_effect=mock_get_objects)
+    # def test_model_heatmap_analysis_app(self, download_staging_file, get_objects):
+    #     params = {'workspace_name': self.wsName,
+    #               'staging_file_path': os.path.join('data', 'model_compare_temp.xlsx')}
+    #     returnVal = self.serviceImpl.model_heatmap_analysis(self.ctx, params)[0]
+
+    #     self.assertIn('report_ref', returnVal)
+    #     self.assertIn('report_name', returnVal)
+
+    # def test_create_heatmap_analysis_template(self):
+    #     params = {'workspace_id': self.wsId,
+    #               'object_types': ['KBaseFile.SingleEndLibrary', 'KBaseFile.PairedEndLibrary'],
+    #               'workspace_scope': 'all_workspace',
+    #               }
+    #     returnVal = self.serviceImpl.create_heatmap_analysis_template(self.ctx, params)[0]
+
+    #     self.assertIn('report_ref', returnVal)
+    #     self.assertIn('report_name', returnVal)
+
     @patch.object(DataFileUtil, "get_objects", side_effect=mock_get_objects)
-    def test_model_heatmap_analysis_app(self, download_staging_file, get_objects):
+    def test_model_set_to_functional_profiles_app(self, get_objects):
+        profile_types = {"functional_rxn": 1,
+                         "nonfunctional_rxn": 0,
+                         "gapfilled_rxn": 1,
+                         "total_functional_coverage": 0,
+                         "gene_count": 1}
+
+        attri_mapping_ref = 'FBAModelSet'
         params = {'workspace_name': self.wsName,
-                  'staging_file_path': os.path.join('data', 'model_compare_temp.xlsx')}
-        returnVal = self.serviceImpl.model_heatmap_analysis(self.ctx, params)[0]
+                  'profile_types': profile_types,
+                  'attri_mapping_ref': attri_mapping_ref}
+        returnVal = self.serviceImpl.model_set_to_functional_profiles(self.ctx, params)[0]
 
         self.assertIn('report_ref', returnVal)
         self.assertIn('report_name', returnVal)
-
-    def test_create_heatmap_analysis_template(self):
-        params = {'workspace_id': self.wsId,
-                  'object_types': ['KBaseFile.SingleEndLibrary', 'KBaseFile.PairedEndLibrary'],
-                  'workspace_scope': 'all_workspace',
-                  }
-        returnVal = self.serviceImpl.create_heatmap_analysis_template(self.ctx, params)[0]
-
-        self.assertIn('report_ref', returnVal)
-        self.assertIn('report_name', returnVal)
+        self.assertIn('functional_profile_refs', returnVal)

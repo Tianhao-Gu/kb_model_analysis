@@ -143,21 +143,19 @@ class HeatmapUtil:
 
         return overall_stats, reaction_stats
 
-    def _run_model_characterization(self, model_ref, workspace_name):
+    def _run_model_characterization(self, workspace_name, model_name):
         '''
         run fba_tools.run_model_characterization to generate pathway information
 
         '''
         try:
-            logging.warning('Found empty attributes and pathways in {}'.format(model_ref))
+            logging.warning('Found empty attributes and pathways in {}'.format(model_name))
             logging.warning('Trying to run model characterization')
-            model_obj = self._get_model_obj(model_ref)
-            model_info = model_obj['info']
 
             ret = self.fba_tools.run_model_characterization({
-                                                    'fbamodel_id': model_info[1],
+                                                    'fbamodel_id': model_name,
                                                     'workspace': workspace_name,
-                                                    'fbamodel_output_id': model_info[1]})
+                                                    'fbamodel_output_id': model_name})
             logging.warning('Generated new objects: {}'.format(ret))
             new_model_ref = ret.get('new_fbamodel_ref')
 
@@ -173,10 +171,12 @@ class HeatmapUtil:
         model_refs = model_df.index.tolist()
 
         for model_ref in model_refs:
-            model_obj = self._get_model_obj(model_ref)
+            # should not cache the object since object might change after running FBA run_model_characterization
+            latest_model_ref = '/'.join(model_ref.split('/')[:2])
+            model_obj = self.dfu.get_objects({'object_refs': [latest_model_ref]})['data'][0]
             model_info = model_obj['info']
             model_data = model_obj['data']
-
+            model_name = model_info[1]
             model_type = model_info[2]
 
             if 'KBaseFBA.FBAModel' not in model_type:
@@ -197,12 +197,10 @@ class HeatmapUtil:
                 raise ValueError(err_msg)
 
             if not model_data.get('attributes', {}).get('pathways', {}):
-                new_model_ref = self._run_model_characterization(model_ref, workspace_name)
+                new_model_ref = self._run_model_characterization(workspace_name, model_name)
                 if new_model_ref:
                     logging.info('created new FBAModel object {} from {}'.foramt(new_model_ref,
                                                                                  model_ref))
-                    # idx = model_df.index.values.tolist().index(model_ref)
-                    # model_df.index.values[idx] = '/'.join(new_model_ref.split('/')[:2])
 
             idx = model_df.index.values.tolist().index(model_ref)
             model_df.index.values[idx] = '/'.join(model_ref.split('/')[:2])

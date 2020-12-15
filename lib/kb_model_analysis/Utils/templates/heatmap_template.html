@@ -103,12 +103,22 @@ function drawHeatmap(data_field_value, metadata_label_value, pathway_label_value
         });
     };
 
+    // px.colors.sequential.OrRd
+    var colorscaleValue = [
+        [0, 'rgb(254,232,200)'],
+        [0.0001, 'rgb(253,212,158)'],
+        [0.001, 'rgb(253,187,132)'],
+        [0.01, 'rgb(252,141,89)'],
+        [0.1, 'rgb(239,101,72)'],
+        [1.0, 'rgb(215,48,31)']];
+
     var data = [
       {
         z: values,
         x: columns_copied,
         y: pathways,
         type: 'heatmap',
+        colorscale: colorscaleValue,
         hoverongaps: false
       },
     ];

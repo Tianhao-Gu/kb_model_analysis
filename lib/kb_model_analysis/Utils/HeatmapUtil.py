@@ -143,6 +143,32 @@ class HeatmapUtil:
 
         return overall_stats, reaction_stats
 
+    def _run_model_characterization(self, model_ref, workspace_name):
+        '''
+        run fba_tools.run_model_characterization to generate pathway information
+
+        '''
+        try:
+            logging.warning('Found empty attributes and pathways in {}'.format(model_ref))
+            logging.warning('Trying to run model characterization')
+            model_obj = self._get_model_obj(model_ref)
+            model_info = model_obj['info']
+
+            ret = self.fba_tools.run_model_characterization({
+                                                    'fbamodel_id': model_info[1],
+                                                    'workspace': workspace_name,
+                                                    'fbamodel_output_id': model_info[1]})
+            logging.warning('Generated new objects: {}'.format(ret))
+            new_model_ref = ret.get('new_fbamodel_ref')
+
+        except Exception:
+            new_model_ref = None
+            logging.warning('failed to run run_model_characterization')
+            logging.warning(traceback.format_exc())
+            logging.warning(sys.exc_info()[2])
+
+        return new_model_ref
+
     def _check_model_obj_version(self, model_df, workspace_name):
         model_refs = model_df.index.tolist()
 
@@ -171,22 +197,10 @@ class HeatmapUtil:
                 raise ValueError(err_msg)
 
             if not model_data.get('attributes', {}).get('pathways', {}):
-                try:
-                    logging.warning('Found empty attributes and pathways in {}'.format(model_ref))
-                    logging.warning('Trying to run model characterization')
-                    ret = self.fba_tools.run_model_characterization({
-                                                            'fbamodel_id': model_info[1],
-                                                            'workspace': workspace_name,
-                                                            'fbamodel_output_id': model_info[1]})
-                    logging.warning('Generated new objects: {}'.format(ret))
-                    # new_ref = ret.get('new_fbamodel_ref')
-
-                    # idx = model_df.index.values.tolist().index(model_ref)
-                    # model_df.index.values[idx] = '/'.join(new_ref.split('/')[:2])
-                except Exception:
-                    logging.warning('failed to run run_model_characterization')
-                    logging.warning(traceback.format_exc())
-                    logging.warning(sys.exc_info()[2])
+                new_model_ref = self._run_model_characterization(model_ref, workspace_name)
+                if new_model_ref:
+                    idx = model_df.index.values.tolist().index(model_ref)
+                    model_df.index.values[idx] = '/'.join(new_model_ref.split('/')[:2])
 
             idx = model_df.index.values.tolist().index(model_ref)
             model_df.index.values[idx] = '/'.join(model_ref.split('/')[:2])

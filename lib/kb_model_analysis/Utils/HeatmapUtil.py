@@ -199,7 +199,7 @@ class HeatmapUtil:
             if not model_data.get('attributes', {}).get('pathways', {}):
                 new_model_ref = self._run_model_characterization(workspace_name, model_name)
                 if new_model_ref:
-                    logging.info('created new FBAModel object {} from {}'.foramt(new_model_ref,
+                    logging.info('created new FBAModel object {} from {}'.format(new_model_ref,
                                                                                  model_ref))
 
             idx = model_df.index.values.tolist().index(model_ref)

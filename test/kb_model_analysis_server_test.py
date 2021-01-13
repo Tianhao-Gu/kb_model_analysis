@@ -207,6 +207,10 @@ class kb_model_analysisTest(unittest.TestCase):
         self.assertIn('report_name', returnVal)
 
     def test_create_heatmap_analysis_template(self):
+
+        foft = FakeObjectsForTests(self.callback_url)
+        obj_names = ['test_reads.1', 'test_reads.2']
+        foft.create_fake_reads({'ws_name': self.wsName, 'obj_names': obj_names})
         params = {'workspace_id': self.wsId,
                   'object_types': ['KBaseFile.SingleEndLibrary', 'KBaseFile.PairedEndLibrary'],
                   'workspace_scope': 'all_workspace',

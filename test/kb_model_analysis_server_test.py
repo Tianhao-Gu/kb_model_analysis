@@ -212,7 +212,7 @@ class kb_model_analysisTest(unittest.TestCase):
         obj_names = ['test_reads.1', 'test_reads.2']
         foft.create_fake_reads({'ws_name': self.wsName, 'obj_names': obj_names})
         params = {'workspace_id': self.wsId,
-                  'object_types': ['KBaseFile.SingleEndLibrary', 'KBaseFile.PairedEndLibrary'],
+                  'object_type': ['KBaseFile.SingleEndLibrary', 'KBaseFile.PairedEndLibrary'],
                   'workspace_scope': 'all_workspace',
                   }
         returnVal = self.serviceImpl.create_heatmap_analysis_template(self.ctx, params)[0]

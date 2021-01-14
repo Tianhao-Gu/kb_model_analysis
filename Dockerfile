@@ -17,6 +17,7 @@ RUN pip install scipy==1.4.1 \
     && pip install openpyxl==3.0.3 \
     && pip install xlrd==1.2.0 \
     && pip install scikit-learn==0.22.1 \
+    && pip install plotly==4.14.3 \
     && pip install mock==3.0.5
 
 # -----------------------------------------

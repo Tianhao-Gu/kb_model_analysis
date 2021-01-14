@@ -15,6 +15,9 @@ import math
 
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import pdist
+import plotly.figure_factory as ff
+import plotly.graph_objects as go
+from plotly.offline import plot
 
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.WsLargeDataIOClient import WsLargeDataIO
@@ -665,6 +668,220 @@ class HeatmapUtil:
 
         return heatmap_data
 
+    def _create_fc_profile_heatmap_drop_down(self, output_directory, profile_datas, heatmap_meta):
+        logging.info('Start building heatmap tab')
+
+        suffix = str(uuid.uuid4())
+
+        profile_name_profile_page_map = dict()
+        profile_name_profile_page_json = 'profile_name_profile_page_map_{}.json'.format(suffix)
+
+        for profile_name, profile_data in profile_datas.items():
+            model_set_refs = profile_data['compound_names']
+            heatmap_meta_copy = copy.deepcopy(heatmap_meta)
+
+            model_names = [heatmap_meta_copy['Model Name'][model_set_ref] for model_set_ref in model_set_refs]
+            df = pd.DataFrame(profile_data['values'],
+                              index=profile_data['pathways']['Pathway Name'],
+                              columns=model_names)
+
+            heatmap_name = '{}_heatmap_dropdown.html'.format(profile_name.replace(' ', '_'))
+            heatmap_path = os.path.join(output_directory, heatmap_name)
+
+            profile_name_profile_page_map[profile_name] = heatmap_name
+            # Initialize figure by creating upper dendrogram
+            fig = ff.create_dendrogram(df.T.values,
+                                       orientation='bottom',
+                                       labels=df.columns,
+                                       colorscale=['lightsteelblue'],
+                                       distfun=lambda x: pdist(x),
+                                       linkagefun=lambda x: linkage(x, 'ward'))
+            for i in range(len(fig['data'])):
+                fig['data'][i]['yaxis'] = 'y2'
+
+            # Create Side Dendrogram
+            dendro_side = ff.create_dendrogram(df.values,
+                                               orientation='left',
+                                               labels=df.index,
+                                               colorscale=['lightsteelblue'] * 8,
+                                               distfun=lambda x: pdist(x),
+                                               linkagefun=lambda x: linkage(x, 'ward'))
+            for i in range(len(dendro_side['data'])):
+                dendro_side['data'][i]['xaxis'] = 'x2'
+
+            # Add Side Dendrogram Data to Figure
+            for data in dendro_side['data']:
+                fig.add_trace(data)
+
+            # Create Heatmap
+            idx_ordered_label = dendro_side['layout']['yaxis']['ticktext']
+            col_ordered_label = fig['layout']['xaxis']['ticktext']
+
+            colorscale = [
+                [0, 'rgb(47, 15, 61)'],
+                [0.2, 'rgb(107, 24, 93)'],
+                [0.4, 'rgb(168, 40, 96)'],
+                [0.6, 'rgb(215, 48, 31)'],
+                [0.8, 'rgb(252,141,89)'],
+                [1.0, 'rgb(255,247,236)']]
+
+            df = df.reindex(index=idx_ordered_label, columns=col_ordered_label)
+
+            heatmap = go.Heatmap(
+                z=df.values,
+                x=df.columns,
+                y=df.index,
+                hoverongaps=False,
+                colorscale=colorscale)
+
+            heatmap['x'] = fig['layout']['xaxis']['tickvals']
+            heatmap['y'] = dendro_side['layout']['yaxis']['tickvals']
+
+            # Add Heatmap Data to Figure
+            fig.add_trace(heatmap)
+
+            fig.update_layout({'width': 1400,
+                               'height': 1000,
+                               'plot_bgcolor': 'rgba(0,0,0,0)',
+                               'showlegend': False,
+                               'hovermode': 'closest'})
+
+            # Edit xaxis
+            fig.update_layout(xaxis={'domain': [0, 0.825],
+                                     'mirror': False,
+                                     'showgrid': False,
+                                     'showline': False,
+                                     'zeroline': False,
+                                     'ticks': ""})
+            # Edit xaxis2
+            fig.update_layout(xaxis2={'domain': [0.826, 1],
+                                      'mirror': False,
+                                      'showgrid': False,
+                                      'showline': False,
+                                      'zeroline': False,
+                                      'showticklabels': False,
+                                      'ticks': ""})
+
+            # Edit yaxis
+            fig.update_layout(yaxis={'domain': [0, .85],
+                                     'mirror': False,
+                                     'showgrid': False,
+                                     'showline': False,
+                                     'zeroline': False,
+                                     'ticks': "",
+                                     'ticktext': dendro_side['layout']['yaxis']['ticktext'],
+                                     'tickvals': dendro_side['layout']['yaxis']['tickvals']
+                                     })
+            # Edit yaxis2
+            fig.update_layout(yaxis2={'domain': [.825, .975],
+                                      'mirror': False,
+                                      'showgrid': False,
+                                      'showline': False,
+                                      'zeroline': False,
+                                      'showticklabels': False,
+                                      'ticks': ""})
+
+            yaxis_copy = copy.deepcopy(fig['layout']['yaxis'])
+            xaxis_copy = copy.deepcopy(fig['layout']['xaxis'])
+
+            yaxis_copy['ticktext'] = profile_data['pathways']['Pathway Name']
+            yaxis_pathway_name = copy.deepcopy(yaxis_copy)
+
+            yaxis_copy['ticktext'] = profile_data['pathways']['Pathway Class']
+            yaxis_pathway_class = copy.deepcopy(yaxis_copy)
+
+            model_names = xaxis_copy['ticktext']
+
+            update_x_buttons = list()
+            model_ref_name_map = heatmap_meta_copy['Model Name']
+            model_refs = list()
+
+            for model_name in model_names:
+                model_ref = list(model_ref_name_map.keys())[list(model_ref_name_map.values()).index(model_name)]
+                model_refs.append(model_ref)
+
+            xaxis_model_name = copy.deepcopy(xaxis_copy)
+            update_x_buttons.append(dict(label='Model Name',
+                                         method="relayout",
+                                         args=["xaxis", xaxis_model_name]))
+            heatmap_meta_copy.pop('Model Name')
+            for meta_name, model_ref_meta_map in heatmap_meta_copy.items():
+                new_xaxis_names = [model_ref_meta_map[model_ref] for model_ref in model_refs]
+                xaxis_copy['ticktext'] = new_xaxis_names
+                xaxis_updated = copy.deepcopy(xaxis_copy)
+                update_x_buttons.append(dict(label=meta_name,
+                                             method="relayout",
+                                             args=["xaxis", xaxis_updated]))
+
+            # Add dropdowns
+            button_layer_1_height = 1.06
+            fig.update_layout(
+                updatemenus=[
+                    dict(
+                        buttons=list([
+                            dict(label="Payway Name",
+                                 method="relayout",
+                                 args=["yaxis", yaxis_pathway_name]),
+                            dict(label="Payway Class",
+                                 method="relayout",
+                                 args=["yaxis", yaxis_pathway_class]),
+                        ]),
+                        direction="down",
+                        pad={"r": 10, "t": 10},
+                        showactive=True,
+                        x=0.06,
+                        xanchor="left",
+                        y=button_layer_1_height,
+                        yanchor="top"
+                    ),
+                    dict(
+                        buttons=update_x_buttons,
+                        direction="down",
+                        pad={"r": 10, "t": 10},
+                        showactive=True,
+                        x=0.27,
+                        xanchor="left",
+                        y=button_layer_1_height,
+                        yanchor="top"
+                    ),
+
+                ]
+            )
+
+            fig.update_layout(
+                annotations=[
+                    dict(text="Pathway<br>Label", x=0, xref="paper", y=button_layer_1_height - 0.01,
+                         yref="paper", showarrow=False),
+                    dict(text="Metadata<br>Label", x=0.2, xref="paper", y=button_layer_1_height - 0.01,
+                         yref="paper", align="left", showarrow=False),
+                ])
+
+            plot(fig, filename=heatmap_path)
+
+        with open(profile_name_profile_page_json, 'w') as outfile:
+            json.dump(profile_name_profile_page_map, outfile)
+
+        data_info = ""
+        for data_name in profile_datas.keys():
+            data_info += """\n<option value="{}">{}</option>\n""".format(data_name, data_name)
+
+        heatmap_html_name = 'heatmap_{}.html'.format(suffix)
+        heatmap_html = os.path.join(output_directory, heatmap_html_name)
+
+        with open(heatmap_html, 'w') as heatmap_html:
+            with open('functional_profiles_dropdown_template.html', 'r') as heatmap_template_file:
+                heatmap_template = heatmap_template_file.read()
+                heatmap_template = heatmap_template.replace('<!-- data_info -->',
+                                                            data_info)
+                heatmap_template = heatmap_template.replace('profile_name_profile_page_map.json',
+                                                            profile_name_profile_page_json)
+                heatmap_template = heatmap_template.replace(
+                                    'heatmap_dropdown.html',
+                                    profile_name_profile_page_map[list(profile_datas.keys())[0]])
+                heatmap_html.write(heatmap_template)
+
+        return heatmap_html_name
+
     def _create_fc_profile_heatmap(self, output_directory, profile_datas, heatmap_meta):
 
         logging.info('Start building heatmap tab')
@@ -762,8 +979,10 @@ class HeatmapUtil:
             if suffix == '':
                 html_tab_name = pathway_name_map[profile_name]
 
-        heatmap_page = self._create_fc_profile_heatmap(output_directory, profile_datas,
-                                                       heatmap_meta)
+        # heatmap_page = self._create_fc_profile_heatmap(output_directory, profile_datas,
+        #                                                heatmap_meta)
+        heatmap_page = self._create_fc_profile_heatmap_drop_down(output_directory, profile_datas,
+                                                                 heatmap_meta)
 
         tab_id = html_tab_name.replace(" ", "")
         tab_def_content += """
@@ -788,8 +1007,11 @@ class HeatmapUtil:
                 if suffix == '':
                     html_tab_name = pathway_name_map[profile_name]
 
-            heatmap_page = self._create_fc_profile_heatmap(output_directory, profile_datas,
-                                                           heatmap_meta)
+            # heatmap_page = self._create_fc_profile_heatmap(output_directory, profile_datas,
+            #                                                heatmap_meta)
+            heatmap_page = self._create_fc_profile_heatmap_drop_down(output_directory,
+                                                                     profile_datas,
+                                                                     heatmap_meta)
 
             tab_id = html_tab_name.replace(" ", "")
             tab_def_content += """

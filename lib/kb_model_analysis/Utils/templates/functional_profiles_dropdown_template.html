@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style>
+body {font-family: "Lato", sans-serif;}
+
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 20%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+div.heatmap {
+  width: 100%;
+  height: 900px;
+  border: 1px solid #dddddd;
+}
+
+</style>
+<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+<meta charset="UTF-8">
+<title>Heatmap</title>
+</head>
+<body>
+
+<p></p>
+
+<table>
+    <tr>
+        <td>Normalization</td>
+        <td><select id="data_field">
+                <!-- data_info -->
+            </select>
+        </td>
+    </tr>
+</table>
+<p></p>
+<div id="profile_heatmap" class="heatmap">
+    <iframe id="profile_heatmap_page" height="900px" width="100%" src="heatmap_dropdown.html" style="border:none;"></iframe>
+</div>
+
+<script>
+
+var page_names = $.getJSON({'url': "profile_name_profile_page_map.json", 'async': false});
+page_names = JSON.parse(page_names.responseText);
+
+var data_field = document.getElementById("data_field");
+var data_field_value = data_field.value;
+
+data_field.addEventListener('change', function (){
+    data_field_value = this.options[this.selectedIndex].value;
+    drawHeatmap(data_field_value);
+});
+
+drawHeatmap(data_field_value);
+
+function drawHeatmap(data_field_value) {
+    var page_name = page_names[data_field_value];
+    document.getElementById("profile_heatmap_page").src=page_name;
+};
+
+</script>
+
+</body>
+</html>

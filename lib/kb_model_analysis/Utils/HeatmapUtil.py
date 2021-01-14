@@ -869,7 +869,9 @@ class HeatmapUtil:
         heatmap_html = os.path.join(output_directory, heatmap_html_name)
 
         with open(heatmap_html, 'w') as heatmap_html:
-            with open('functional_profiles_dropdown_template.html', 'r') as heatmap_template_file:
+            with open(os.path.join(os.path.dirname(__file__),
+                                   'templates', 'functional_profiles_dropdown_template.html'),
+                      'r') as heatmap_template_file:
                 heatmap_template = heatmap_template_file.read()
                 heatmap_template = heatmap_template.replace('<!-- data_info -->',
                                                             data_info)

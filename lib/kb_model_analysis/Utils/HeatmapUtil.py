@@ -759,6 +759,9 @@ class HeatmapUtil:
                                      'showgrid': False,
                                      'showline': False,
                                      'zeroline': False,
+                                     'automargin': True,
+                                     'tickangle': 45,
+                                     'tickfont': dict(color='black'),
                                      'ticks': ""})
             # Edit xaxis2
             fig.update_layout(xaxis2={'domain': [0.826, 1],
@@ -775,6 +778,8 @@ class HeatmapUtil:
                                      'showgrid': False,
                                      'showline': False,
                                      'zeroline': False,
+                                     'automargin': True,
+                                     'tickfont': dict(color='black'),
                                      'ticks': "",
                                      'ticktext': dendro_side['layout']['yaxis']['ticktext'],
                                      'tickvals': dendro_side['layout']['yaxis']['tickvals']
@@ -884,7 +889,7 @@ class HeatmapUtil:
                 heatmap_template = heatmap_template.replace('<!-- data_info -->',
                                                             data_info)
                 heatmap_template = heatmap_template.replace('profile_name_profile_page_map.json',
-                                                            profile_name_profile_page_json)
+                                                            profile_name_profile_page_json_name)
                 heatmap_template = heatmap_template.replace(
                     'heatmap_dropdown.html',
                     profile_name_profile_page_map[list(profile_datas.keys())[0]])
@@ -974,7 +979,8 @@ class HeatmapUtil:
         html_report = list()
 
         output_directory = os.path.join(self.scratch, str(uuid.uuid4()))
-        logging.info('Start building report files in dir: {}'.format(output_directory))
+        logging.info('Start building functional profiles report in dir: {}'.format(
+            output_directory))
         self._mkdir_p(output_directory)
         model_set_file_path = os.path.join(output_directory, 'model_set_functional_profiles.html')
 

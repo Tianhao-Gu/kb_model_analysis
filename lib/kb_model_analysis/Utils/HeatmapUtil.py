@@ -701,7 +701,7 @@ class HeatmapUtil:
             fig = ff.create_dendrogram(df.T.values,
                                        orientation='bottom',
                                        labels=df.columns,
-                                       colorscale=px.colors.qualitative.Set3,
+                                       colorscale=px.colors.qualitative.Set2,
                                        distfun=lambda x: pdist(x),
                                        linkagefun=lambda x: linkage(x, 'ward'))
             for i in range(len(fig['data'])):
@@ -711,7 +711,7 @@ class HeatmapUtil:
             dendro_side = ff.create_dendrogram(df.values,
                                                orientation='left',
                                                labels=df.index,
-                                               colorscale=px.colors.qualitative.Set3,
+                                               colorscale=px.colors.qualitative.Set2,
                                                distfun=lambda x: pdist(x),
                                                linkagefun=lambda x: linkage(x, 'ward'))
             for i in range(len(dendro_side['data'])):

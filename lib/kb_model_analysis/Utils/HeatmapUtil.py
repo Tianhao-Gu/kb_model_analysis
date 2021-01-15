@@ -750,7 +750,7 @@ class HeatmapUtil:
             width = max(100 * df.columns.size, 1400)
             height = max(10 * df.index.size, 1000)
             y2_height = 100
-            x2_width = 100
+            x2_width = 150
             y2_offset = y2_height / height
             x2_offset = x2_width / width
 
@@ -1019,7 +1019,7 @@ class HeatmapUtil:
         """.format(tab_id, html_tab_name)
 
         page_content = ''
-        page_content += '\n<iframe height="900px" width="100%" '
+        page_content += '\n<iframe height="1250px" width="100%" scrolling="no" '
         page_content += 'src="{}" style="border:none;"></iframe>'.format(heatmap_page)
 
         tab_content += """\n<div id="{}" class="tabcontent">{}</div>""".format(tab_id,
@@ -1048,7 +1048,7 @@ class HeatmapUtil:
             """.format(tab_id, html_tab_name)
 
             page_content = ''
-            page_content += '\n<iframe height="900px" width="100%" '
+            page_content += '\n<iframe height="1250px" width="100%" scrolling="no" '
             page_content += 'src="{}" style="border:none;"></iframe>'.format(heatmap_page)
 
             tab_content += """\n<div id="{}" class="tabcontent">{}</div>""".format(tab_id,

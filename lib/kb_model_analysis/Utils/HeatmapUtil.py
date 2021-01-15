@@ -1237,7 +1237,7 @@ class HeatmapUtil:
                          'objects_created': objects_created,
                          'html_links': html_files,
                          'direct_html_link_index': 0,
-                         'html_window_height': 1350,
+                         'html_window_height': 1400,
                          'report_object_name': 'model_set_to_func_profile_' + str(uuid.uuid4())}
 
         kbase_report_client = KBaseReport(self.callback_url, token=self.token)

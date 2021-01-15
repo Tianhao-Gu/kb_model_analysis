@@ -18,6 +18,7 @@ from scipy.spatial.distance import pdist
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 from plotly.offline import plot
+import plotly.express as px
 
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.WsLargeDataIOClient import WsLargeDataIO
@@ -700,7 +701,7 @@ class HeatmapUtil:
             fig = ff.create_dendrogram(df.T.values,
                                        orientation='bottom',
                                        labels=df.columns,
-                                       colorscale=['lightsteelblue'],
+                                       colorscale=px.colors.qualitative.Set3,
                                        distfun=lambda x: pdist(x),
                                        linkagefun=lambda x: linkage(x, 'ward'))
             for i in range(len(fig['data'])):
@@ -710,7 +711,7 @@ class HeatmapUtil:
             dendro_side = ff.create_dendrogram(df.values,
                                                orientation='left',
                                                labels=df.index,
-                                               colorscale=['lightsteelblue'] * 8,
+                                               colorscale=px.colors.qualitative.Set3,
                                                distfun=lambda x: pdist(x),
                                                linkagefun=lambda x: linkage(x, 'ward'))
             for i in range(len(dendro_side['data'])):
@@ -1289,7 +1290,7 @@ class HeatmapUtil:
                          'workspace_name': workspace_name,
                          'html_links': html_files,
                          'direct_html_link_index': 0,
-                         'html_window_height': 1250,
+                         'html_window_height': 1400,
                          'report_object_name': 'model_comparison_' + str(uuid.uuid4())}
 
         kbase_report_client = KBaseReport(self.callback_url, token=self.token)

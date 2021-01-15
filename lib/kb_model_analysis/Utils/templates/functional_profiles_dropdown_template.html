@@ -42,7 +42,7 @@ div.heatmap {
 </table>
 <p></p>
 <div id="profile_heatmap" class="heatmap">
-    <iframe id="profile_heatmap_page" height="900px" width="100%" src="heatmap_dropdown.html" style="border:none;"></iframe>
+    <iframe id="profile_heatmap_page" height="100%" width="100%" src="heatmap_dropdown.html" style="border:none;"></iframe>
 </div>
 
 <script>
@@ -50,15 +50,11 @@ div.heatmap {
 var page_names = $.getJSON({'url': "profile_name_profile_page_map.json", 'async': false});
 page_names = JSON.parse(page_names.responseText);
 
-var data_field = document.getElementById("data_field");
-var data_field_value = data_field.value;
 
 data_field.addEventListener('change', function (){
     data_field_value = this.options[this.selectedIndex].value;
     drawHeatmap(data_field_value);
 });
-
-drawHeatmap(data_field_value);
 
 function drawHeatmap(data_field_value) {
     var page_name = page_names[data_field_value];

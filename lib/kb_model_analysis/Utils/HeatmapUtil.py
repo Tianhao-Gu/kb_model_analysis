@@ -747,24 +747,32 @@ class HeatmapUtil:
             # Add Heatmap Data to Figure
             fig.add_trace(heatmap)
 
-            fig.update_layout({'width': 1400,
-                               'height': 1000,
-                               'plot_bgcolor': 'rgba(0,0,0,0)',
+            width = max(100 * df.columns.size, 1400)
+            height = max(10 * df.index.size, 1000)
+            y2_height = 100
+            x2_width = 100
+            y2_offset = y2_height / height
+            x2_offset = x2_width / width
+
+            fig.update_layout({'plot_bgcolor': 'rgba(0,0,0,0)',
                                'showlegend': False,
+                               'width': width,
+                               'height': height,
+                               'autosize': True,
                                'hovermode': 'closest'})
 
             # Edit xaxis
-            fig.update_layout(xaxis={'domain': [0, 0.825],
+            fig.update_layout(xaxis={'domain': [0, max(1-x2_offset, 0.825)],
                                      'mirror': False,
                                      'showgrid': False,
                                      'showline': False,
                                      'zeroline': False,
                                      'automargin': True,
                                      'tickangle': 45,
-                                     'tickfont': dict(color='black'),
+                                     'tickfont': dict(color='black', size=8),
                                      'ticks': ""})
             # Edit xaxis2
-            fig.update_layout(xaxis2={'domain': [0.826, 1],
+            fig.update_layout(xaxis2={'domain': [max(1-x2_offset, 0.825), 1],
                                       'mirror': False,
                                       'showgrid': False,
                                       'showline': False,
@@ -773,19 +781,19 @@ class HeatmapUtil:
                                       'ticks': ""})
 
             # Edit yaxis
-            fig.update_layout(yaxis={'domain': [0, .85],
+            fig.update_layout(yaxis={'domain': [0, max(1-y2_offset, 0.85)],
                                      'mirror': False,
                                      'showgrid': False,
                                      'showline': False,
                                      'zeroline': False,
                                      'automargin': True,
-                                     'tickfont': dict(color='black'),
+                                     'tickfont': dict(color='black', size=8),
                                      'ticks': "",
                                      'ticktext': dendro_side['layout']['yaxis']['ticktext'],
                                      'tickvals': dendro_side['layout']['yaxis']['tickvals']
                                      })
             # Edit yaxis2
-            fig.update_layout(yaxis2={'domain': [.825, .975],
+            fig.update_layout(yaxis2={'domain': [max(1-y2_offset, 0.85), 1],
                                       'mirror': False,
                                       'showgrid': False,
                                       'showline': False,
@@ -827,7 +835,7 @@ class HeatmapUtil:
                                              args=["xaxis", xaxis_updated]))
 
             # Add dropdowns
-            button_layer_1_height = 1.06
+            button_layer_1_height = min(1 + y2_height/height, 1.06)
             fig.update_layout(
                 updatemenus=[
                     dict(
@@ -863,9 +871,11 @@ class HeatmapUtil:
 
             fig.update_layout(
                 annotations=[
-                    dict(text="Pathway<br>Label", x=0, xref="paper", y=button_layer_1_height - 0.01,
+                    dict(text="Pathway<br>Label", x=0, xref="paper",
+                         y=button_layer_1_height - min(5/height, 0.01),
                          yref="paper", showarrow=False),
-                    dict(text="Metadata<br>Label", x=0.2, xref="paper", y=button_layer_1_height - 0.01,
+                    dict(text="Metadata<br>Label", x=0.2, xref="paper",
+                         y=button_layer_1_height - min(5/height, 0.01),
                          yref="paper", align="left", showarrow=False),
                 ])
 

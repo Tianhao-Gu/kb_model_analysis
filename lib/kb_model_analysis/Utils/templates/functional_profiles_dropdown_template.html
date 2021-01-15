@@ -52,7 +52,7 @@ page_names = JSON.parse(page_names.responseText);
 
 
 data_field.addEventListener('change', function (){
-    data_field_value = this.options[this.selectedIndex].value;
+    var data_field_value = this.options[this.selectedIndex].value;
     drawHeatmap(data_field_value);
 });
 

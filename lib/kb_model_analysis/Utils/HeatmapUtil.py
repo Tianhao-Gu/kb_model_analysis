@@ -1019,7 +1019,7 @@ class HeatmapUtil:
         """.format(tab_id, html_tab_name)
 
         page_content = ''
-        page_content += '\n<iframe height="1250px" width="100%" scrolling="no" '
+        page_content += '\n<iframe height="1300px" width="100%" '
         page_content += 'src="{}" style="border:none;"></iframe>'.format(heatmap_page)
 
         tab_content += """\n<div id="{}" class="tabcontent">{}</div>""".format(tab_id,
@@ -1048,7 +1048,7 @@ class HeatmapUtil:
             """.format(tab_id, html_tab_name)
 
             page_content = ''
-            page_content += '\n<iframe height="1250px" width="100%" scrolling="no" '
+            page_content += '\n<iframe height="1300px" width="100%" '
             page_content += 'src="{}" style="border:none;"></iframe>'.format(heatmap_page)
 
             tab_content += """\n<div id="{}" class="tabcontent">{}</div>""".format(tab_id,

@@ -315,6 +315,7 @@ class HeatmapUtil:
             fetched_pathway_value = list()
             for pathway_id in pathway_df.index.to_list():
                 pathway_data = pathways.get(pathway_id, {})
+                pathway_data['pathway_presents'] = int(bool(pathway_data))
                 pathway_data['total_functional_coverage'] = pathway_data.get(
                     'average_coverage_per_reaction', 0) * pathway_data.get('functional_rxn', 0)
                 pathway_value = pathway_data.get(field_type, 0)
@@ -538,7 +539,7 @@ class HeatmapUtil:
 
         func_profile_data['original_matrix_ref'] = attri_mapping_ref
         func_profile_data['profile_type'] = 'ModelSet'
-        func_profile_data['profile_category'] = 'community'
+        func_profile_data['profile_category'] = 'organism'
 
         profile_data = {'row_ids': pathway_df.index.tolist(),
                         'col_ids': pathway_df.columns.tolist(),
@@ -985,7 +986,11 @@ class HeatmapUtil:
             'gene_count': 'Gene Count',
             'gene_count_zscore': 'Gene Count (Z-Score)',
             'gene_count_rownormalization': 'Gene Count (Divide Row Maximum Value)',
-            'gene_count_dividepathwaysize': 'Gene Count (Divide Pathway Size)'}
+            'gene_count_dividepathwaysize': 'Gene Count (Divide Pathway Size)',
+            'pathway_presents': 'Pathway Presents',
+            'pathway_presents_zscore': 'Pathway Presents (Z-Score)',
+            'pathway_presents_rownormalization': 'Pathway Presents (Divide Row Maximum Value)',
+            'pathway_presents_dividepathwaysize': 'Pathway Presents (Divide Pathway Size)'}
 
         html_report = list()
 

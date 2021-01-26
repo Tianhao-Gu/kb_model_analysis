@@ -72,6 +72,14 @@ parameters :
         long-hint  : |
             Gene Count
 
+    pathway_presents :
+        ui-name : |
+            Pathway Presents
+        short-hint : |
+            Pathway Presents
+        long-hint  : |
+            Pathway Presents
+
 parameter-groups :
     profile_types:
         ui-name : Profile Type To Be Created

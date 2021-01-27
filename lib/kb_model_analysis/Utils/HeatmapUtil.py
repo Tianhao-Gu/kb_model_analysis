@@ -537,8 +537,8 @@ class HeatmapUtil:
 
         func_profile_data = dict()
 
-        func_profile_data['original_matrix_ref'] = attri_mapping_ref
-        func_profile_data['profile_type'] = 'ModelSet'
+        func_profile_data['base_object_ref'] = attri_mapping_ref
+        func_profile_data['profile_type'] = 'modelset'
         func_profile_data['profile_category'] = 'organism'
 
         profile_data = {'row_ids': pathway_df.index.tolist(),

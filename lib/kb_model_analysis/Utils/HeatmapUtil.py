@@ -750,7 +750,7 @@ class HeatmapUtil:
             # Add Heatmap Data to Figure
             fig.add_trace(heatmap)
 
-            width = max(100 * df.columns.size, 1400)
+            width = max(12 * df.columns.size, 1400)
             height = max(10 * df.index.size, 1000)
             y2_height = 100
             x2_width = 150

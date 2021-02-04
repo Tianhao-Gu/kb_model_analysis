@@ -838,7 +838,7 @@ class HeatmapUtil:
                                              args=["xaxis", xaxis_updated]))
 
             # Add dropdowns
-            button_size = 70.0
+            button_size = 85.0
             button_layer_1_height = min(1 + y2_height/height, 1.06)
             fig.update_layout(
                 updatemenus=[

@@ -46,10 +46,10 @@ class HeatmapUtil:
         cached_obj = self.obj_cache.get(model_ref)
 
         if cached_obj:
-            logging.info('Getting object from cache')
+            logging.info('Getting object {} from cache'.format(model_ref))
             return cached_obj
         else:
-            logging.info('Getting object using DataFileUtil')
+            logging.info('Getting object {} using DataFileUtil'.format(model_ref))
             model_obj = self.dfu.get_objects({'object_refs': [model_ref]})['data'][0]
             self.obj_cache[model_ref] = model_obj
             return model_obj
@@ -178,6 +178,7 @@ class HeatmapUtil:
         for model_ref in model_refs:
             # should not cache the object since object might change after running FBA run_model_characterization
             latest_model_ref = '/'.join(model_ref.split('/')[:2])
+            logging.info('checking model version for {}'.format(latest_model_ref))
             model_obj = self.dfu.get_objects({'object_refs': [latest_model_ref]})['data'][0]
             model_info = model_obj['info']
             model_data = model_obj['data']
@@ -837,6 +838,7 @@ class HeatmapUtil:
                                              args=["xaxis", xaxis_updated]))
 
             # Add dropdowns
+            button_size = 70.0
             button_layer_1_height = min(1 + y2_height/height, 1.06)
             fig.update_layout(
                 updatemenus=[
@@ -852,7 +854,7 @@ class HeatmapUtil:
                         direction="down",
                         pad={"r": 10, "t": 10},
                         showactive=True,
-                        x=0.06,
+                        x=button_size / width,
                         xanchor="left",
                         y=button_layer_1_height,
                         yanchor="top"
@@ -862,7 +864,7 @@ class HeatmapUtil:
                         direction="down",
                         pad={"r": 10, "t": 10},
                         showactive=True,
-                        x=0.27,
+                        x=button_size * 5 / width,
                         xanchor="left",
                         y=button_layer_1_height,
                         yanchor="top"
@@ -876,7 +878,7 @@ class HeatmapUtil:
                     dict(text="Pathway<br>Label", x=0, xref="paper",
                          y=button_layer_1_height - min(5/height, 0.01),
                          yref="paper", showarrow=False),
-                    dict(text="Metadata<br>Label", x=0.2, xref="paper",
+                    dict(text="Metadata<br>Label", x=button_size * 4 / width, xref="paper",
                          y=button_layer_1_height - min(5/height, 0.01),
                          yref="paper", align="left", showarrow=False),
                 ])

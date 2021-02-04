@@ -750,7 +750,7 @@ class HeatmapUtil:
             # Add Heatmap Data to Figure
             fig.add_trace(heatmap)
 
-            width = max(12 * df.columns.size, 1400)
+            width = max(15 * df.columns.size, 1400)
             height = max(10 * df.index.size, 1000)
             y2_height = 100
             x2_width = 150
@@ -839,7 +839,7 @@ class HeatmapUtil:
 
             # Add dropdowns
             button_size = 85.0
-            button_layer_1_height = min(1 + y2_height/height, 1.06)
+            button_layer_1_height = min(1 + (y2_height - 10)/height, 1.06)
             fig.update_layout(
                 updatemenus=[
                     dict(
